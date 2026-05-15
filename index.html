@@ -67,11 +67,10 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .wordmark .wm-tld{font-size:13px;font-weight:500;color:var(--muted);margin-left:4px;letter-spacing:0}
   /* Step labels — same token language as .eyebrow */
   .hero-step{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 10px}
-  .hero #heroStep2{margin-top:24px}
   .hero .input-bar{width:100%;margin-bottom:0}
-  .hero .input-bar .tag-zone{flex:0 0 auto;padding:0}
-  .hero .input-bar .tag-trigger{white-space:nowrap}
-  .hero .input-bar .presets{margin-left:auto}
+  .ib-pick{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .ib-pick .tag-zone{flex:0 0 auto;padding:0}
+  .ib-pick .tag-trigger{white-space:nowrap}
 
   /* TOOLBAR */
   .toolbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;flex-wrap:wrap}
@@ -90,7 +89,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .toolbar-btn.danger:hover{border-color:#E86574;color:#E86574}
 
   /* INPUT BAR */
-  .input-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:14px}
+  .input-bar{display:flex;flex-direction:column;align-items:stretch;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:14px}
   .swatch-input{position:relative;width:64px;height:64px;border-radius:10px;cursor:pointer;border:1px solid rgba(0,0,0,.08);overflow:hidden;flex-shrink:0}
   /* Strip the native color-input chrome so the wrapper border is the only one shown.
      Without these vendor pseudo-element rules, Chrome / Safari render an inner
@@ -118,8 +117,8 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     font-family:var(--mono);font-size:10px;letter-spacing:.16em;
     color:var(--muted);font-weight:700;
   }
-  .presets{display:flex;gap:6px;flex-wrap:wrap}
-  .preset{width:28px;height:28px;border-radius:8px;border:1px solid rgba(0,0,0,.08);cursor:pointer;transition:transform .12s}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--line)}
+  .preset{width:32px;height:32px;border-radius:8px;border:1px solid rgba(0,0,0,.08);cursor:pointer;transition:transform .12s}
   .preset:hover{transform:translateY(-2px)}
   .controls{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;color:var(--muted)}
   .toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--card)}
@@ -219,7 +218,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .input-bar{flex-wrap:wrap}
 
   /* WEIGHTS */
-  .weights{display:flex;gap:18px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 90px 14px 18px;margin-bottom:36px;align-items:center}
+  .weights{display:flex;gap:18px;flex-wrap:wrap;padding:14px 90px 16px 18px;align-items:center}
   .weights-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
   .weight{display:flex;flex-direction:column;gap:4px;min-width:90px;flex:1}
   .weight-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11px}
@@ -320,12 +319,6 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     .status-color .swatch-action.locked{opacity:1;pointer-events:auto}
   }
 
-  /* TOP ROW — input + weights stacked, wheel on the side */
-  .top-row{display:flex;gap:18px;align-items:flex-start;margin-bottom:36px}
-  .top-row-left{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
-  .top-row-left .input-bar,
-  .top-row-left .weights,
-  .top-row-left .method-panel{margin-bottom:0;flex-shrink:0}
   /* COLOR WHEEL — compact side panel */
   .hue-map-wrap{
     position:relative;
@@ -711,24 +704,33 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   }
 
 
-  /* METHOD TABS — 4-up grid under Step 2 in the hero */
+  /* METHOD BLOCK — full-width tab strip + connected control dock */
+  .method-block{width:100%;margin-bottom:36px}
   .method-tabs{
-    display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:0;
     width:100%;
   }
   .method-tab{
-    position:relative;
-    padding:13px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer;
+    position:relative;z-index:1;
+    padding:13px 16px 14px;border:1px solid var(--line);border-bottom:none;
+    border-radius:10px 10px 0 0;background:var(--bg);cursor:pointer;
     color:var(--muted);text-align:left;
-    transition:background .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease;
+    transition:background .18s ease, color .18s ease, border-color .18s ease;
     display:flex;flex-direction:column;gap:5px;
   }
+  .method-tab + .method-tab{border-left:none}
   .method-tab:hover{
-    background:var(--code-bg);color:var(--fg);border-color:var(--muted);
+    background:var(--code-bg);color:var(--fg);
   }
+  /* Active tab merges into the dock below (shared bg, no seam) */
   .method-tab.active{
-    color:var(--fg);background:var(--card);border-color:transparent;
-    box-shadow:inset 0 0 0 1.5px var(--accent-grad-b,#A78BFA);
+    color:var(--fg);background:var(--card);z-index:3;
+    margin-bottom:-1px;padding-bottom:15px;
+  }
+  .method-tab.active::after{
+    content:'';position:absolute;left:0;right:0;top:0;height:2px;
+    border-radius:10px 10px 0 0;
+    background:linear-gradient(105deg,var(--accent-grad-a,#5B6CFF),var(--accent-grad-b,#A78BFA));
   }
   .method-tab .tab-name{
     font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
@@ -745,13 +747,25 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     opacity:.8;line-height:1.4;color:var(--muted);
   }
   .method-tab.active .tab-desc{opacity:1}
-  .method-tab:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+  /* #3 — 4 palette colors shown only on the chosen tab */
+  .tab-swatches{display:none;gap:5px;margin-top:8px}
+  .method-tab.active .tab-swatches{display:flex}
+  .tab-swatches i{width:16px;height:16px;border-radius:4px;display:block;border:1px solid rgba(255,255,255,.10)}
+  .method-tab:focus-visible{outline:2px solid var(--fg);outline-offset:-2px}
+  /* Dock: one connected card holding the active method's controls */
+  .method-dock{
+    position:relative;background:var(--card);border:1px solid var(--line);
+    border-radius:0 10px 10px 10px;box-shadow:var(--shadow);
+  }
   @media (max-width:640px){
     .method-tabs{grid-template-columns:1fr 1fr}
+    .method-tab:nth-child(3){border-radius:0}
+    .method-tab:nth-child(2){border-left:none}
+    .method-tab:nth-child(3),.method-tab:nth-child(4){border-top:none}
   }
 
   /* METHOD-SPECIFIC PANELS */
-  .method-panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 90px 14px 18px;box-shadow:var(--shadow)}
+  .method-panel{display:none;padding:14px 90px 16px 18px}
   .method-panel.active{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
   .method-panel .panel-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
   .method-panel .control{display:flex;flex-direction:column;gap:5px;min-width:140px;flex:1}
@@ -782,7 +796,6 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   body[data-method="hsl"] [data-m1-only],
   body[data-method="material"] [data-m1-only],
   body[data-method="hybrid"] [data-m1-only]{display:none !important}
-  /* Keep top-row flex for all methods so the wheel sits beside the input bar */
 
   .snap-badge{display:inline-block;margin-left:6px;padding:1px 6px;background:rgba(0,0,0,.18);border-radius:4px;font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle}
   .swatch-color.light-text .snap-badge{background:rgba(255,255,255,.22)}
@@ -828,7 +841,6 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     .hero-shell{flex-direction:column;gap:28px}
     .hero-aside{width:100%;align-items:stretch}
     .hero-aside .toolbar{justify-content:flex-start}
-    .top-row{flex-direction:column;align-items:stretch}
     .hue-map-wrap{align-self:center}
     .palette{grid-template-columns:repeat(2,1fr)}
     .paper-grid{grid-template-columns:repeat(4,1fr)}
@@ -993,6 +1005,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
 
         <div class="hero-step" id="heroStep1">Step 1 — your color</div>
         <div class="input-bar">
+          <div class="ib-pick">
           <label class="swatch-input" id="swatchInputWrap">
             <input type="color" id="colorInput" value="#5B6CFF">
           </label>
@@ -1005,9 +1018,9 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
 
           <div class="tag-zone" id="tagZone">
             <div class="tag-popover-wrap">
-              <button class="tag-trigger" id="tagTriggerBtn" aria-haspopup="true" aria-expanded="false" title="Select Theme to refine the suggested colors">
+              <button class="tag-trigger" id="tagTriggerBtn" aria-haspopup="true" aria-expanded="false" title="Pick a theme to refine the suggested colors">
                 <svg class="tag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                <span id="tagTriggerLabel">Select Theme</span>
+                <span id="tagTriggerLabel">Basic</span>
                 <span class="badge" id="tagBadge" style="display:none">0</span>
                 <svg class="tag-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
@@ -1030,8 +1043,9 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
             <div id="tagSelectedChips" style="display:flex;gap:5px;flex-wrap:wrap"></div>
             <div class="tag-conflict-hint" id="tagConflictHint" role="alert"></div>
           </div>
+          </div><!-- /ib-pick -->
 
-          <div class="presets">
+          <div class="presets" aria-label="Theme swatches">
             <button class="preset" style="background:#5B6CFF" data-hex="#5B6CFF" title="Indigo"></button>
             <button class="preset" style="background:#0EA5E9" data-hex="#0EA5E9" title="Sky"></button>
             <button class="preset" style="background:#10B981" data-hex="#10B981" title="Emerald"></button>
@@ -1041,26 +1055,6 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
             <button class="preset" style="background:#EC4899" data-hex="#EC4899" title="Pink"></button>
             <button class="preset" style="background:#0F172A" data-hex="#0F172A" title="Slate"></button>
           </div>
-        </div>
-
-        <div class="hero-step" id="heroStep2">Step 2 — how the accents are derived</div>
-        <div class="method-tabs" id="methodTabs" role="tablist" aria-label="Calculation method">
-          <button class="method-tab active" data-method="material" role="tab" aria-selected="true">
-            <span class="tab-name">Material</span>
-            <span class="tab-desc">Curated premium colors, ranked by fit.</span>
-          </button>
-          <button class="method-tab" data-method="hsl" role="tab" aria-selected="false">
-            <span class="tab-name">HSL Math</span>
-            <span class="tab-desc">Classic color theory schemes.</span>
-          </button>
-          <button class="method-tab" data-method="hybrid" role="tab" aria-selected="false">
-            <span class="tab-name">Hybrid</span>
-            <span class="tab-desc">HSL math with material safety net.</span>
-          </button>
-          <button class="method-tab" data-method="oklch" role="tab" aria-selected="false">
-            <span class="tab-name">OKLCH-Scored</span>
-            <span class="tab-desc">Weighted OKLCH scorer with sliders.</span>
-          </button>
         </div>
       </div><!-- /hero -->
       <aside class="hero-aside">
@@ -1098,9 +1092,32 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
       </div><!-- /hero-shell -->
     </header>
 
-    <!-- TOP ROW: weights + method panels -->
-    <div class="top-row">
-    <div class="top-row-left">
+    <!-- METHOD BLOCK: full-width tab strip + connected control dock -->
+    <section class="method-block" aria-label="Accent derivation method">
+      <div class="hero-step" id="heroStep2">Step 2 — how the accents are derived</div>
+      <div class="method-tabs" id="methodTabs" role="tablist" aria-label="Calculation method">
+        <button class="method-tab active" data-method="material" role="tab" aria-selected="true">
+          <span class="tab-name">Material</span>
+          <span class="tab-desc">Curated premium colors, ranked by fit.</span>
+          <span class="tab-swatches" aria-hidden="true"></span>
+        </button>
+        <button class="method-tab" data-method="hsl" role="tab" aria-selected="false">
+          <span class="tab-name">HSL Math</span>
+          <span class="tab-desc">Classic color theory schemes.</span>
+          <span class="tab-swatches" aria-hidden="true"></span>
+        </button>
+        <button class="method-tab" data-method="hybrid" role="tab" aria-selected="false">
+          <span class="tab-name">Hybrid</span>
+          <span class="tab-desc">HSL math with material safety net.</span>
+          <span class="tab-swatches" aria-hidden="true"></span>
+        </button>
+        <button class="method-tab" data-method="oklch" role="tab" aria-selected="false">
+          <span class="tab-name">OKLCH-Scored</span>
+          <span class="tab-desc">Weighted OKLCH scorer with sliders.</span>
+          <span class="tab-swatches" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="method-dock">
 
     <div class="weights" data-m1-only>
       <div class="weights-label">Weights</div>
@@ -1171,8 +1188,8 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
       </div>
       <button class="panel-reset" data-reset="hybrid" type="button" title="Restore Hybrid defaults">Reset</button>
     </div>
-    </div><!-- /top-row-left -->
-    </div><!-- /top-row -->
+      </div><!-- /method-dock -->
+    </section><!-- /method-block -->
 
     <!-- SUGGESTIONS — Method 1 only -->
     <div class="section-head" data-m1-only>
@@ -4108,6 +4125,17 @@ function applyLocksToPalette(palette){
   return palette;
 }
 
+function renderTabSwatches(palette){
+  const cols = [
+    palette.primary && palette.primary.hex,
+    palette.accent1 && palette.accent1.hex,
+    palette.accent2 && palette.accent2.hex,
+    palette.accent3 && palette.accent3.hex
+  ].filter(Boolean);
+  const html = cols.map(h => `<i style="background:${h}"></i>`).join('');
+  document.querySelectorAll('.method-tab .tab-swatches').forEach(el => { el.innerHTML = html; });
+}
+
 function rerender(){
   const palette = generateForCurrentMethod();
   document.documentElement.style.setProperty('--accent-grad-a', palette.primary.hex);
@@ -4128,6 +4156,7 @@ function rerender(){
     renderSuggestions(palette.suggestions, palette.primary.hex, palette.userInputHex);
   }
   renderPalette(palette);
+  renderTabSwatches(palette);
   renderStatus(palette.statuses);
   // Paper neutrals — derived from current primary + PAPER_OPTS (sliders / preset cycle)
   const papers = generatePaper(palette.primary.hex, PAPER_OPTS);
@@ -4308,7 +4337,7 @@ document.getElementById('hexInput').addEventListener('input', (e) => {
    ============================================================ */
 
 const TRIGGER_LABELS = {
-  none:  'Select Theme',
+  none:  'Basic',
   some:  (n) => `${n} tag${n>1?'s':''} active`
 };
 
@@ -4334,7 +4363,7 @@ function syncTagUI(){
   const triggerBtn = document.getElementById('tagTriggerBtn');
   const badge = document.getElementById('tagBadge');
   if (SELECTED_TAGS.size === 0){
-    triggerLabel.textContent = 'Select Theme';
+    triggerLabel.textContent = 'Basic';
     triggerBtn.classList.remove('has-tags');
     if (badge) badge.style.display = 'none';
   } else {
