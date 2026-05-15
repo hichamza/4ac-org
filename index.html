@@ -51,7 +51,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .container{max-width:1180px;width:100%;margin:0 auto;padding:48px 28px 96px;flex:1;display:flex;flex-direction:column}
 
   /* HERO */
-  header{padding-bottom:40px;margin-bottom:40px}
+  header{padding-bottom:0;margin-bottom:36px}
   .hero-shell{display:flex;gap:36px;align-items:stretch}
   .hero{display:flex;flex-direction:column;flex:1 1 auto;min-width:0}
   /* aside stretches to hero height; wheel pinned to the bottom line */
@@ -379,8 +379,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .breakdown h3{font-size:16px;font-weight:600;margin-bottom:6px;letter-spacing:-.01em}
   .breakdown-subhead{
     display:flex;align-items:center;gap:12px;
-    margin:24px 0 4px;padding-top:18px;
-    border-top:1px solid var(--line);
+    margin:28px 0 4px;
   }
   .breakdown-subhead-text{
     font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
@@ -808,6 +807,13 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   body[data-method="material"] [data-m1-only],
   body[data-method="hybrid"] [data-m1-only]{display:none !important}
 
+  /* Suggested variants live INSIDE the OKLCH dock, grouped with the weights
+     as part of that method's controls. Divider + dock padding match .weights. */
+  .dock-suggest{padding:0 18px 16px;border-top:1px solid var(--line)}
+  .dock-suggest-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 0 12px}
+  .dock-suggest .meta{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+  .dock-suggest .suggestions-grid{margin-bottom:0}
+
   .snap-badge{display:inline-block;margin-left:6px;padding:1px 6px;background:rgba(0,0,0,.18);border-radius:4px;font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle}
   .swatch-color.light-text .snap-badge{background:rgba(255,255,255,.22)}
   .material-name,
@@ -1142,6 +1148,14 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
       <div class="weight" title="Minimum hue separation (degrees) between any two accents. Higher = accents must be further apart on the wheel; some slots may go empty."><div class="weight-head"><span class="name">Accent hue gap</span><span class="val" id="wav-val">30°</span></div><input type="range" id="wav" min="0" max="180" step="5" value="30"></div>
       <button class="panel-reset" data-reset="oklch" type="button" title="Restore the default weights">Reset</button>
     </div>
+    <!-- SUGGESTIONS — OKLCH only, nested in the dock as part of its controls -->
+    <div class="dock-suggest" data-m1-only>
+      <div class="dock-suggest-head">
+        <span class="weights-label">Suggested variants</span>
+        <span class="meta">% = compatibility with your typed input · click to swap as primary</span>
+      </div>
+      <div class="suggestions-grid" id="suggestionsGrid"></div>
+    </div>
     <!-- METHOD-SPECIFIC PANELS (HSL / Material / Hybrid) -->
     <div class="method-panel" id="hslPanel" data-method-panel="hsl">
       <div class="panel-label">HSL Math</div>
@@ -1202,13 +1216,6 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     </div>
       </div><!-- /method-dock -->
     </section><!-- /method-block -->
-
-    <!-- SUGGESTIONS — Method 1 only -->
-    <div class="section-head" data-m1-only>
-      <h2>Suggested variants</h2>
-      <span class="meta">% = compatibility with your typed input · click to swap as primary</span>
-    </div>
-    <div class="suggestions-grid" id="suggestionsGrid" data-m1-only></div>
 
     <!-- VIEW CONTROLS — view toggle, grades toggle, unified regen -->
     <div class="view-controls" id="viewControls">
@@ -3123,7 +3130,7 @@ function renderPalette(p){
         <div class="swatch-color ${bestTextColor(item.hex)}" style="background:${item.hex}" data-copy="${item.hex}">
           ${actions}
           <div class="swatch-role">${item.role}${item.snapped && !item.materialName ? snapBadge : ''}</div>
-          ${item.showScore
+          ${item.showScore && Number.isFinite(item.score)
             ? `<div class="swatch-score" data-tooltip="${Math.round(item.score)}% — pair compatibility between this accent ${item.hex} and the primary ${primaryHex}">${Math.round(item.score)}<small>%</small></div>`
             : ``
           }
@@ -3569,7 +3576,7 @@ function shareLink(){
 
 function isLightColor(hex){ return relLuminance(hexToRgb(hex)) > 0.45; }
 
-function renderPaletteToCanvas(width=1400, height=950){
+function renderPaletteToCanvas(width=1400, height=1180){
   const canvas = document.createElement('canvas');
   // Hi-DPI: render at 2x for crisp output
   const scale = 2;
@@ -3583,6 +3590,7 @@ function renderPaletteToCanvas(width=1400, height=950){
   const palette = generateForCurrentMethod();
   const accents = [palette.accent1, palette.accent2, palette.accent3].filter(Boolean);
   const statuses = palette.statuses || [];
+  const papers = generatePaper(palette.primary.hex, PAPER_OPTS);
 
   // Background
   ctx.fillStyle = '#FAFAF7';
@@ -3611,6 +3619,10 @@ function renderPaletteToCanvas(width=1400, height=950){
   function drawSwatch(x, y, w, h, item, role){
     ctx.fillStyle = item.hex;
     ctx.fillRect(x, y, w, h);
+    // Hairline border keeps near-white paper swatches visible on the light bg.
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 
     const useDark = isLightColor(item.hex);
     const textColor = useDark ? 'rgba(0,0,0,0.88)' : 'rgba(255,255,255,0.96)';
@@ -3681,6 +3693,26 @@ function renderPaletteToCanvas(width=1400, height=950){
       drawSwatch(M + i*(sw+gap), y, sw, 140, st, st.name);
     });
   }
+  y += 140 + 36;
+
+  // Paper row — the tunable neutral system (bg / surface / layout / border /
+  // muted / body / heading), same set the text exports already carry.
+  ctx.fillStyle = '#6B6B6B';
+  ctx.font = '600 11px JetBrains Mono, monospace';
+  ctx.fillText('PAPER · NEUTRAL SYSTEM', M, y);
+  y += 18;
+  if (papers.length > 0){
+    const PAPER_LABELS = {
+      paperBg: 'Bg', paperSurface: 'Surface', paperLayout: 'Layout',
+      paperBorder: 'Border', paperMuted: 'Muted', paperBody: 'Body',
+      paperHeading: 'Heading'
+    };
+    const gap = 14;
+    const pw = (width - 2*M - (papers.length-1)*gap) / papers.length;
+    papers.forEach((p, i) => {
+      drawSwatch(M + i*(pw+gap), y, pw, 140, p, PAPER_LABELS[p.slot] || p.slot);
+    });
+  }
 
   // Footer
   ctx.fillStyle = '#6B6B6B';
@@ -3724,6 +3756,205 @@ function loadJsPDF(){
   return _jspdfPromise;
 }
 
+// Clean, data-driven multi-page report — everything the page shows, laid out
+// for print (light theme, vector text) rather than a screenshot of the dark UI.
+function buildReportPDF(jsPDF){
+  const PW = 612, PH = 792, M = 48;             // US Letter, pt
+  const CW = PW - 2*M;                          // content width
+  const FOOT = PH - 34;                         // footer baseline / bottom limit
+  const INK = [26,26,26], MUT = [107,107,107], LINE = [225,225,219];
+  const pdf = new jsPDF({ orientation:'portrait', unit:'pt', format:'letter' });
+  const rgb255 = (hex) => { const c = hexToRgb(hex) || [0,0,0]; return c.map(v => Math.round(v*255)); };
+  let y = M;
+
+  const setText = (c) => pdf.setTextColor(c[0],c[1],c[2]);
+  const ensure = (h) => { if (y + h > FOOT){ pdf.addPage(); y = M; } };
+  const rule = () => { pdf.setDrawColor(LINE[0],LINE[1],LINE[2]); pdf.setLineWidth(0.6); pdf.line(M, y, M+CW, y); };
+
+  function heading(text){
+    ensure(34);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(10);
+    setText(MUT);
+    pdf.text(text.toUpperCase(), M, y + 8, { charSpace: 1.2 });
+    y += 14; rule(); y += 16;
+  }
+
+  // Color row: chip + role/name on the left, hex + LCH (+optional score) right.
+  function swatchRow(hex, role, sub, rightTop, rightSub){
+    const H = 44; ensure(H + 6);
+    const c = rgb255(hex);
+    pdf.setFillColor(c[0],c[1],c[2]);
+    pdf.setDrawColor(LINE[0],LINE[1],LINE[2]); pdf.setLineWidth(0.6);
+    pdf.rect(M, y, 60, H, 'FD');
+    const tx = M + 74;
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(10.5); setText(INK);
+    pdf.text(role, tx, y + 17);
+    if (sub){ pdf.setFont('helvetica','normal'); pdf.setFontSize(9); setText(MUT); pdf.text(sub, tx, y + 31); }
+    pdf.setFont('courier','bold'); pdf.setFontSize(11); setText(INK);
+    pdf.text(hex.toUpperCase(), M + CW, y + 17, { align:'right' });
+    if (rightTop){ pdf.setFont('courier','normal'); pdf.setFontSize(8.5); setText(MUT); pdf.text(rightTop, M + CW, y + 30, { align:'right' }); }
+    if (rightSub){ pdf.setFont('courier','normal'); pdf.setFontSize(8.5); setText(MUT); pdf.text(rightSub, M + CW, y + 40, { align:'right' }); }
+    y += H + 8;
+  }
+
+  // 100–900 ramp: label then 9 cells across the content width.
+  function rampRow(label, hex){
+    const cellH = 30, n = 9, gap = 4, cw = (CW - (n-1)*gap) / n;
+    ensure(14 + cellH + 10);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(9); setText(INK);
+    pdf.text(label, M, y + 8); y += 14;
+    gradeRamp(hex).forEach((g, i) => {
+      const x = M + i*(cw+gap);
+      const c = rgb255(g.hex);
+      pdf.setFillColor(c[0],c[1],c[2]);
+      pdf.setDrawColor(LINE[0],LINE[1],LINE[2]); pdf.setLineWidth(g.isBase ? 1.4 : 0.5);
+      pdf.rect(x, y, cw, cellH, 'FD');
+      const tc = bestTextColor(g.hex) === 'dark-text' ? [0,0,0] : [255,255,255];
+      pdf.setTextColor(tc[0],tc[1],tc[2]);
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(7.5);
+      pdf.text(String(g.step), x + cw/2, y + 12, { align:'center' });
+      pdf.setFont('courier','normal'); pdf.setFontSize(6.2);
+      pdf.text(g.hex.toUpperCase(), x + cw/2, y + 22, { align:'center' });
+    });
+    y += cellH + 12;
+  }
+
+  // Compatibility breakdown table row.
+  function pairRow(a, aName, b, bName){
+    const H = 26; ensure(H + 4);
+    const ca = rgb255(a.hex), cb = rgb255(b.hex);
+    pdf.setFillColor(ca[0],ca[1],ca[2]); pdf.rect(M, y+4, 16, 16, 'F');
+    pdf.setFillColor(cb[0],cb[1],cb[2]); pdf.rect(M+18, y+4, 16, 16, 'F');
+    const cmp = compatibility(a.color, b.color);
+    const ratio = wcagContrast(a.hex, b.hex);
+    const lv = wcagLevel(ratio);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(9); setText(INK);
+    pdf.text(`${aName} × ${bName}`, M + 44, y + 11);
+    pdf.setFont('courier','normal'); pdf.setFontSize(7.5); setText(MUT);
+    pdf.text(`${a.hex.toUpperCase()} · ${b.hex.toUpperCase()}`, M + 44, y + 21);
+    pdf.setFont('courier','normal'); pdf.setFontSize(8.5); setText(INK);
+    pdf.text(`${ratio.toFixed(2)}:1 ${lv.level}`, M + 200, y + 16);
+    pdf.setFont('courier','normal'); pdf.setFontSize(8); setText(MUT);
+    pdf.text(`H${Math.round(cmp.H*100)} C${Math.round(cmp.C*100)} L${Math.round(cmp.L*100)} A${Math.round(cmp.A*100)} M${Math.round(cmp.M*100)}`, M + 290, y + 16);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(11); setText(INK);
+    pdf.text(`${Math.round(cmp.score)}%`, M + CW, y + 15, { align:'right' });
+    y += H + 4;
+  }
+
+  // ── Title block ──────────────────────────────────────────────────────────
+  const palette = generateForCurrentMethod();
+  const papers  = generatePaper(palette.primary.hex, PAPER_OPTS);
+  const statuses = palette.statuses || [];
+  const methodLabel = ({oklch:'OKLCH-Scored', hsl:'HSL Math', material:'Material', hybrid:'Hybrid'})[CURRENT_METHOD] || CURRENT_METHOD;
+
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(24); setText(INK);
+  pdf.text('Color Palette Report', M, y + 18); y += 32;
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(10); setText(MUT);
+  pdf.text(`Method: ${methodLabel}   ·   Input: ${(palette.userInputHex || ACTIVE_PRIMARY_HEX || '').toUpperCase()}   ·   ${new Date().toLocaleString()}`, M, y); y += 14;
+  const shareUrl = window.location.href;
+  pdf.setFontSize(8.5);
+  pdf.splitTextToSize(shareUrl, CW).forEach(ln => { pdf.text(ln, M, y); y += 11; });
+  y += 10;
+
+  // Settings summary
+  heading('Settings');
+  const w = WEIGHTS;
+  const lockList = Object.keys(LOCKS).length ? Object.entries(LOCKS).map(([k,v]) => `${k}=${v}`).join(', ') : 'none';
+  const opts = CURRENT_METHOD === 'hsl' ? HSL_OPTS : CURRENT_METHOD === 'material' ? MAT_OPTS : CURRENT_METHOD === 'hybrid' ? HYB_OPTS : null;
+  const kv = (label, val) => {
+    ensure(14); pdf.setFont('helvetica','bold'); pdf.setFontSize(8.5); setText(MUT);
+    pdf.text(label.toUpperCase()+':', M, y); pdf.setFont('helvetica','normal'); setText(INK);
+    pdf.splitTextToSize(String(val), CW - 110).forEach((ln,i) => { pdf.text(ln, M + 110, y); if(i) y+=11; });
+    y += 14;
+  };
+  kv('Weights', `Hue ${w.wh} · Chroma ${w.wc} · Lightness ${w.wl} · Accessibility ${w.wa} · Modernity ${w.wm} · Primary-gap ${w.primaryHue}° · Accent-gap ${w.accentHue}°`);
+  if (opts) kv('Method opts', JSON.stringify(opts));
+  kv('WCAG minimum', WCAG_MIN + (WCAG_MIN_RATIO[WCAG_MIN] ? ` (${WCAG_MIN_RATIO[WCAG_MIN]}:1)` : ''));
+  kv('Locks', lockList);
+  y += 6;
+
+  // ── Palette ──────────────────────────────────────────────────────────────
+  heading('Palette');
+  const palItems = [
+    [palette.primary, '01 · Primary'],
+    [palette.accent1, '02 · Primary accent'],
+    [palette.accent2, '03 · Secondary accent'],
+    [palette.accent3, '04 · Tertiary accent']
+  ];
+  palItems.forEach(([item, role]) => {
+    if (!item) return;
+    const nm = nearestColorName(item.hex);
+    const score = (CURRENT_METHOD === 'oklch' && Number.isFinite(item.score)) ? `${Math.round(item.score)}% vs primary` : '';
+    swatchRow(item.hex, role, nm.name + (nm.exact ? '' : ' ≈'), item.color ? fmtLch(item.color) : '', score);
+  });
+
+  // ── Paper neutral system ─────────────────────────────────────────────────
+  heading('Paper · neutral system');
+  papers.forEach(p => {
+    const nm = nearestColorName(p.hex);
+    swatchRow(p.hex, p.name, p.role + ' — ' + nm.name + (nm.exact ? '' : ' ≈'), '', '');
+  });
+
+  // ── Status colors ────────────────────────────────────────────────────────
+  if (statuses.length){
+    heading('Status colors');
+    statuses.forEach(st => {
+      const nm = nearestColorName(st.hex);
+      swatchRow(st.hex, st.name, nm.name + (nm.exact ? '' : ' ≈'), st.color ? fmtLch(st.color) : '', '');
+    });
+  }
+
+  // ── Ramps 100–900 ────────────────────────────────────────────────────────
+  heading('Ramps · 100–900');
+  palItems.forEach(([item, role]) => { if (item) rampRow(role, item.hex); });
+  statuses.forEach(st => rampRow(st.name, st.hex));
+
+  // ── Suggested variants (OKLCH) ───────────────────────────────────────────
+  const sugg = palette.suggestions || [];
+  if (sugg.length){
+    heading('Suggested variants');
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(8.5); setText(MUT);
+    ensure(14); pdf.text('% = compatibility with your typed input · sorted best-first', M, y); y += 18;
+    sugg.forEach(s => {
+      swatchRow(s.hex, s.tag, '', s.color ? `H ${Math.round(s.color.h)}°` : '', `${Math.round(s.score)}% vs input`);
+    });
+  }
+
+  // ── Compatibility breakdown ──────────────────────────────────────────────
+  const P = palette;
+  const paperBy = (slot) => papers.find(pp => pp.slot === slot);
+  const wrapPaper = (paper, name) => paper ? { hex: paper.hex, color: hexToOklch(paper.hex), name } : null;
+  const paperBg = wrapPaper(paperBy('paperBg'), 'Bg');
+  const paperSurface = wrapPaper(paperBy('paperSurface'), 'Surface');
+  const paperBody = wrapPaper(paperBy('paperBody'), 'Body');
+  const paperHeading = wrapPaper(paperBy('paperHeading'), 'Heading');
+  const paperMuted = wrapPaper(paperBy('paperMuted'), 'Muted');
+  const accentPairs = [
+    [P.primary,'Primary',P.accent1,'A1'],[P.primary,'Primary',P.accent2,'A2'],[P.primary,'Primary',P.accent3,'A3'],
+    [P.accent1,'A1',P.accent2,'A2'],[P.accent1,'A1',P.accent3,'A3'],[P.accent2,'A2',P.accent3,'A3']
+  ].filter(([a,,b]) => a && b);
+  const paperPairs = [
+    [P.primary,'Primary',paperBg,'Bg'],[P.accent1,'A1',paperBg,'Bg'],[P.accent2,'A2',paperBg,'Bg'],[P.accent3,'A3',paperBg,'Bg'],
+    [paperHeading,'Heading',paperBg,'Bg'],[paperBody,'Body',paperBg,'Bg'],[paperMuted,'Muted',paperBg,'Bg'],[paperBody,'Body',paperSurface,'Surface']
+  ].filter(([a,,b]) => a && b);
+  heading('Compatibility breakdown · palette harmony');
+  accentPairs.forEach(([a,an,b,bn]) => pairRow(a,an,b,bn));
+  if (paperPairs.length){
+    heading('Paper readability · contrast on page surfaces');
+    paperPairs.forEach(([a,an,b,bn]) => pairRow(a,an,b,bn));
+  }
+
+  // ── Footers ──────────────────────────────────────────────────────────────
+  const pages = pdf.getNumberOfPages();
+  for (let i = 1; i <= pages; i++){
+    pdf.setPage(i);
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(8); pdf.setTextColor(MUT[0],MUT[1],MUT[2]);
+    pdf.text('Generated by 4ac.org · OKLCH · WCAG 2.1', M, FOOT + 14);
+    pdf.text(`${i} / ${pages}`, M + CW, FOOT + 14, { align:'right' });
+  }
+  return pdf;
+}
+
 async function exportPDF(){
   showToast('Preparing PDF…');
   try {
@@ -3732,15 +3963,9 @@ async function exportPDF(){
     showToast('PDF needs internet (jsPDF CDN). Try PNG.');
     return;
   }
-  const canvas = renderPaletteToCanvas();
-  const slug = (ACTIVE_PRIMARY_HEX || '#000000').replace('#','').toLowerCase();
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-  // jsPDF unit 'pt' — render at canvas-pixel/2 since we drew at 2x for hi-DPI
-  const wPt = canvas.width / 2;
-  const hPt = canvas.height / 2;
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ orientation: wPt > hPt ? 'landscape' : 'portrait', unit: 'pt', format: [wPt, hPt] });
-  pdf.addImage(dataUrl, 'JPEG', 0, 0, wPt, hPt);
+  const slug = (ACTIVE_PRIMARY_HEX || '#000000').replace('#','').toLowerCase();
+  const pdf = buildReportPDF(jsPDF);
   pdf.save(`palette-${slug}.pdf`);
   showToast('Exported PDF');
 }
@@ -4095,12 +4320,21 @@ function applyLocksToPalette(palette){
   // around makes the displayed name change even though the hex doesn't.
   // The renderer falls back to nearestColorName(lockedHex), which is
   // deterministic for a fixed hex.
+  // Primary is the reference for an accent's compatibility score. The locked
+  // hex fully determines compatibility(primary, lockedColor), so recompute it
+  // here rather than carrying the stale generator score forward.
+  const primaryHexForScore = palette.primary && palette.primary.hex;
+  const primaryLchForScore = primaryHexForScore ? hexToOklch(primaryHexForScore) : null;
   for (const slot of ['accent1','accent2','accent3']){
     if (LOCKS[slot] && palette[slot]){
       const lockedHex = LOCKS[slot].toUpperCase();
       const lch = hexToOklch(lockedHex);
+      // Drop generator metadata tied to the old candidate, but recompute score
+      // for the locked color so the OKLCH card shows a real % (not NaN).
       const { materialName, meta, snapped, score, ...keep } = palette[slot];
-      palette[slot] = { ...keep, hex: lockedHex, color: lch, locked: true };
+      const next = { ...keep, hex: lockedHex, color: lch, locked: true };
+      if (primaryLchForScore) next.score = compatibility(primaryLchForScore, lch).score;
+      palette[slot] = next;
     }
   }
   if (Array.isArray(palette.statuses)){
