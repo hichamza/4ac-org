@@ -67,10 +67,15 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .wordmark .wm-tld{font-size:13px;font-weight:500;color:var(--muted);margin-left:4px;letter-spacing:0}
   /* Step labels — same token language as .eyebrow */
   .hero-step{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 10px}
-  .hero .input-bar{width:100%;margin-bottom:0}
-  .ib-pick{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .ib-pick .tag-zone{flex:0 0 auto;padding:0}
-  .ib-pick .tag-trigger{white-space:nowrap}
+  .hero .step1-row{width:100%;margin-bottom:0}
+  /* Step 1 = two separate cards joined by an OR divider */
+  .step1-row{display:flex;align-items:stretch;gap:0;margin-bottom:14px}
+  .input-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+  .ib-color{flex:0 0 auto;display:flex;align-items:center;gap:14px}
+  .ib-theme{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
+  .ib-theme .tag-zone{padding:0}
+  .ib-theme .tag-trigger{white-space:nowrap}
+  .step1-row > .input-divider{flex:none;align-self:center;margin:0 6px}
 
   /* TOOLBAR */
   .toolbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;flex-wrap:wrap}
@@ -88,8 +93,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .toolbar-btn svg{width:13px;height:13px;display:block}
   .toolbar-btn.danger:hover{border-color:#E86574;color:#E86574}
 
-  /* INPUT BAR */
-  .input-bar{display:flex;flex-direction:column;align-items:stretch;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:14px}
+  /* INPUT */
   .swatch-input{position:relative;width:64px;height:64px;border-radius:10px;cursor:pointer;border:1px solid rgba(0,0,0,.08);overflow:hidden;flex-shrink:0}
   /* Strip the native color-input chrome so the wrapper border is the only one shown.
      Without these vendor pseudo-element rules, Chrome / Safari render an inner
@@ -214,8 +218,8 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .tag-clear-btn:hover{color:var(--fg)}
   .tag-popover-footer .stats{color:var(--muted);text-transform:uppercase;font-weight:500}
 
-  /* Adjustments to input-bar layout to fit the tag zone */
-  .input-bar{flex-wrap:wrap}
+  /* Step 1 cards wrap (color card drops below) on a tight container */
+  .step1-row{flex-wrap:wrap}
 
   /* WEIGHTS */
   .weights{display:flex;gap:18px;flex-wrap:wrap;padding:14px 90px 16px 18px;align-items:center}
@@ -747,10 +751,13 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     opacity:.8;line-height:1.4;color:var(--muted);
   }
   .method-tab.active .tab-desc{opacity:1}
-  /* #3 — 4 palette colors shown only on the chosen tab */
-  .tab-swatches{display:none;gap:5px;margin-top:8px}
-  .method-tab.active .tab-swatches{display:flex}
-  .tab-swatches i{width:16px;height:16px;border-radius:4px;display:block;border:1px solid rgba(255,255,255,.10)}
+  /* #3 — method name + the 4 palette colors share the top line */
+  .tab-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  /* #2 — swatches always visible (every tab, selected or not) */
+  .tab-swatches{display:flex;gap:5px;flex:none;opacity:.55;transition:opacity .18s ease}
+  .method-tab:hover .tab-swatches,
+  .method-tab.active .tab-swatches{opacity:1}
+  .tab-swatches i{width:14px;height:14px;border-radius:4px;display:block;border:1px solid rgba(255,255,255,.10)}
   .method-tab:focus-visible{outline:2px solid var(--fg);outline-offset:-2px}
   /* Dock: one connected card holding the active method's controls */
   .method-dock{
@@ -914,24 +921,25 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     .paper-control input[type=range]::-moz-range-thumb{width:26px;height:26px}
     /* OR divider gets a touch more presence on phones */
     .input-divider span{min-width:36px;height:28px;font-size:11px}
-    /* Input bar: cram [swatch][hex][OR][Select Theme] onto one row,
-       wrap presets below. Drop the "Input color" label, shrink the tag
-       trigger, and override the hex-field's inline max-width:180px. */
-    .input-bar{flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;padding:12px}
-    .input-bar .swatch-input{width:48px;height:48px;flex:none;border-radius:12px}
-    .input-bar .hex-field{min-width:0;flex:0 0 auto;max-width:74px!important;width:74px}
-    .input-bar .hex-field label{display:none}
-    .input-bar .hex-field input{font-size:14px;letter-spacing:.02em}
-    .input-bar .input-divider{flex:none;padding:0;font-size:9px;letter-spacing:.14em}
-    .input-bar .input-divider span{padding:0 2px}
-    .input-bar .tag-zone{flex:0 1 auto;padding:0;min-width:0;display:flex}
-    .input-bar .tag-popover-wrap{min-width:0}
-    .input-bar .tag-trigger{padding:10px 12px;font-size:12px;gap:6px;letter-spacing:.02em;min-height:44px;border-radius:10px}
-    .input-bar .tag-trigger .tag-icon,
-    .input-bar .tag-trigger .tag-caret{width:12px;height:12px}
+    /* Step 1: the two cards stack vertically with OR between them.
+       Drop the "Input color" label, shrink the tag trigger, and
+       override the hex-field's inline max-width:180px. */
+    .step1-row{flex-direction:column;gap:10px}
+    .step1-row > .input-divider{align-self:center;margin:0;flex:none}
+    .ib-color{padding:12px}
+    .ib-color .swatch-input{width:48px;height:48px;flex:none;border-radius:12px}
+    .ib-color .hex-field{min-width:0;flex:1;max-width:none!important;width:auto}
+    .ib-color .hex-field label{display:none}
+    .ib-color .hex-field input{font-size:16px;letter-spacing:.02em}
+    .ib-theme{padding:12px;gap:12px}
+    .ib-theme .tag-zone{min-width:0;display:flex}
+    .ib-theme .tag-popover-wrap{min-width:0}
+    .ib-theme .tag-trigger{padding:10px 12px;font-size:12px;gap:6px;letter-spacing:.02em;min-height:44px;border-radius:10px}
+    .ib-theme .tag-trigger .tag-icon,
+    .ib-theme .tag-trigger .tag-caret{width:12px;height:12px}
     /* Preset color chips — fat-finger friendly */
-    .input-bar .presets{flex-basis:100%;justify-content:flex-start;gap:8px;margin-top:6px}
-    .input-bar .preset{width:40px;height:40px;border-radius:10px}
+    .ib-theme .presets{justify-content:flex-start;gap:8px}
+    .ib-theme .preset{width:40px;height:40px;border-radius:10px}
     /* Method tabs: one-per-row, drop descriptions */
     .method-tab{padding:12px 14px}
     .method-tab .tab-desc{display:none}
@@ -1004,8 +1012,8 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
         <p class="lede">Primary, 3 accents, status colors, a tunable Paper neutral system, 100–900 ramps, and a per-pair compatibility breakdown. Export-ready. No signup.</p>
 
         <div class="hero-step" id="heroStep1">Step 1 — your color</div>
-        <div class="input-bar">
-          <div class="ib-pick">
+        <div class="step1-row">
+          <div class="input-card ib-color">
           <label class="swatch-input" id="swatchInputWrap">
             <input type="color" id="colorInput" value="#5B6CFF">
           </label>
@@ -1013,9 +1021,11 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
             <label for="hexInput">Input color</label>
             <input type="text" id="hexInput" value="#5B6CFF" maxlength="7" autocomplete="off" spellcheck="false">
           </div>
+          </div><!-- /ib-color -->
 
           <div class="input-divider" aria-hidden="true"><span>OR</span></div>
 
+          <div class="input-card ib-theme">
           <div class="tag-zone" id="tagZone">
             <div class="tag-popover-wrap">
               <button class="tag-trigger" id="tagTriggerBtn" aria-haspopup="true" aria-expanded="false" title="Pick a theme to refine the suggested colors">
@@ -1043,7 +1053,6 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
             <div id="tagSelectedChips" style="display:flex;gap:5px;flex-wrap:wrap"></div>
             <div class="tag-conflict-hint" id="tagConflictHint" role="alert"></div>
           </div>
-          </div><!-- /ib-pick -->
 
           <div class="presets" aria-label="Theme swatches">
             <button class="preset" style="background:#5B6CFF" data-hex="#5B6CFF" title="Indigo"></button>
@@ -1055,7 +1064,8 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
             <button class="preset" style="background:#EC4899" data-hex="#EC4899" title="Pink"></button>
             <button class="preset" style="background:#0F172A" data-hex="#0F172A" title="Slate"></button>
           </div>
-        </div>
+          </div><!-- /ib-theme -->
+        </div><!-- /step1-row -->
       </div><!-- /hero -->
       <aside class="hero-aside">
     <!-- TOOLBAR -->
@@ -1097,24 +1107,20 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
       <div class="hero-step" id="heroStep2">Step 2 — how the accents are derived</div>
       <div class="method-tabs" id="methodTabs" role="tablist" aria-label="Calculation method">
         <button class="method-tab active" data-method="material" role="tab" aria-selected="true">
-          <span class="tab-name">Material</span>
+          <span class="tab-head"><span class="tab-name">Material</span><span class="tab-swatches" aria-hidden="true"></span></span>
           <span class="tab-desc">Curated premium colors, ranked by fit.</span>
-          <span class="tab-swatches" aria-hidden="true"></span>
         </button>
         <button class="method-tab" data-method="hsl" role="tab" aria-selected="false">
-          <span class="tab-name">HSL Math</span>
+          <span class="tab-head"><span class="tab-name">HSL Math</span><span class="tab-swatches" aria-hidden="true"></span></span>
           <span class="tab-desc">Classic color theory schemes.</span>
-          <span class="tab-swatches" aria-hidden="true"></span>
         </button>
         <button class="method-tab" data-method="hybrid" role="tab" aria-selected="false">
-          <span class="tab-name">Hybrid</span>
+          <span class="tab-head"><span class="tab-name">Hybrid</span><span class="tab-swatches" aria-hidden="true"></span></span>
           <span class="tab-desc">HSL math with material safety net.</span>
-          <span class="tab-swatches" aria-hidden="true"></span>
         </button>
         <button class="method-tab" data-method="oklch" role="tab" aria-selected="false">
-          <span class="tab-name">OKLCH-Scored</span>
+          <span class="tab-head"><span class="tab-name">OKLCH-Scored</span><span class="tab-swatches" aria-hidden="true"></span></span>
           <span class="tab-desc">Weighted OKLCH scorer with sliders.</span>
-          <span class="tab-swatches" aria-hidden="true"></span>
         </button>
       </div>
       <div class="method-dock">
@@ -4415,7 +4421,7 @@ const DEFAULT_PRESETS = [
 ];
 
 function renderPresets(){
-  const host = document.querySelector('.input-bar .presets');
+  const host = document.querySelector('.ib-theme .presets');
   if (!host) return;
   let presets;
   if (SELECTED_TAGS.size === 0){
