@@ -1721,14 +1721,23 @@ function generatePalette(primaryHex, userInputHex){
 
   const suggestions = generateSuggestions(userInputLch);
 
-  const wrap = (a, label, includeComponents=false) => a ? {
-    color: a.color,
-    hex: oklchToHex(a.color),
-    score: a.score,
-    label,
-    locked: !!a.locked,
-    ...(includeComponents && a.components ? { components: a.components } : {})
-  } : null;
+  // The compatibility % must describe the color actually SHOWN (the hex
+  // swatch), not the idealized pre-gamut pool OKLCH. Locking stores
+  // hexToOklch(displayedHex); the unlocked path must store the SAME value,
+  // otherwise the % silently jumps on lock even though the hex is identical.
+  const wrap = (a, label, includeComponents=false) => {
+    if (!a) return null;
+    const hex = oklchToHex(a.color);
+    const color = hexToOklch(hex);
+    return {
+      color,
+      hex,
+      score: compatibility(primaryLch, color).score,
+      label,
+      locked: !!a.locked,
+      ...(includeComponents && a.components ? { components: a.components } : {})
+    };
+  };
 
   return {
     inputHex: primaryHex,
