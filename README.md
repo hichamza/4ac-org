@@ -7,7 +7,7 @@ One color in → primary + three accents + status colors + a neutral "paper" sys
 No signup. No build step. No backend. Just open it and design.
 
 <p align="center">
-  <a href="https://hichamza.github.io/4ac-org/" target="_blank" rel="noopener noreferrer"><img alt="Try it live — no signup, no build step, no backend" src="assets/try-it-live.svg" width="520"></a>
+  <a href="https://4ac.org/" target="_blank" rel="noopener noreferrer"><img alt="Try it live — no signup, no build step, no backend" src="assets/try-it-live.svg" width="520"></a>
 </p>
 
 ![Hero — method picker and input panel](assets/01-hero-methods.png)
