@@ -51,7 +51,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .container{max-width:1180px;width:100%;margin:0 auto;padding:48px 28px 96px;flex:1;display:flex;flex-direction:column}
 
   /* HERO */
-  header{padding-bottom:40px;border-bottom:1px solid var(--line);margin-bottom:40px}
+  header{padding-bottom:40px;margin-bottom:40px}
   .hero-shell{display:flex;gap:36px;align-items:stretch}
   .hero{display:flex;flex-direction:column;flex:1 1 auto;min-width:0}
   /* aside stretches to hero height; wheel pinned to the bottom line */
@@ -73,8 +73,9 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .step1-row{display:flex;align-items:stretch;gap:0;margin-bottom:14px}
   .input-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
   .ib-color{flex:0 0 auto;display:flex;align-items:center;gap:14px}
-  .ib-color .hex-field{min-width:0}
-  .ib-theme{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+  .ib-color .hex-field{min-width:0;flex:0 0 auto;width:auto}
+  .ib-color .hex-field input{width:9ch}
+  .ib-theme{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:12px}
   /* tag trigger + the color boxes share the top row; chips drop below */
   .ib-theme-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .ib-theme-top .tag-zone{flex:0 0 auto;padding:0}
@@ -759,9 +760,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   /* #3 — method name + the 4 palette colors share the top line */
   .tab-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
   /* #2 — swatches always visible (every tab, selected or not) */
-  .tab-swatches{display:flex;gap:5px;flex:none;opacity:.55;transition:opacity .18s ease}
-  .method-tab:hover .tab-swatches,
-  .method-tab.active .tab-swatches{opacity:1}
+  .tab-swatches{display:flex;gap:5px;flex:none;opacity:1}
   .tab-swatches i{width:14px;height:14px;border-radius:4px;display:block;border:1px solid rgba(255,255,255,.10)}
   .method-tab:focus-visible{outline:2px solid var(--fg);outline-offset:-2px}
   /* Dock: one connected card holding the active method's controls */
@@ -935,7 +934,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     .ib-color .swatch-input{width:48px;height:48px;flex:none;border-radius:12px}
     .ib-color .hex-field{min-width:0;flex:1;max-width:none!important;width:auto}
     .ib-color .hex-field label{display:none}
-    .ib-color .hex-field input{font-size:16px;letter-spacing:.02em}
+    .ib-color .hex-field input{font-size:16px;letter-spacing:.02em;width:100%}
     .ib-theme{padding:12px;gap:12px}
     .ib-theme .tag-zone{min-width:0;display:flex}
     .ib-theme .tag-popover-wrap{min-width:0}
@@ -1022,7 +1021,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
           <label class="swatch-input" id="swatchInputWrap">
             <input type="color" id="colorInput" value="#5B6CFF">
           </label>
-          <div class="hex-field" style="max-width:180px;flex:0 0 auto">
+          <div class="hex-field" style="flex:0 0 auto">
             <label for="hexInput">Input color</label>
             <input type="text" id="hexInput" value="#5B6CFF" maxlength="7" autocomplete="off" spellcheck="false">
           </div>
