@@ -802,6 +802,8 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .panel-reset:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
   .method-panel,
   .weights{position:relative}
+  .method-panel .panel-note{flex:1 1 100%;margin-top:2px;font-family:var(--mono);font-size:10.5px;line-height:1.55;letter-spacing:.02em;color:var(--muted);border-left:2px solid var(--line);padding:5px 0 5px 12px}
+  .method-panel .panel-note[hidden]{display:none}
 
   body[data-method="hsl"] [data-m1-only],
   body[data-method="material"] [data-m1-only],
@@ -1172,6 +1174,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
       <div class="control"><div class="control-head"><span class="name">Saturation drop</span><span class="val" id="hslSatVal">30%</span></div><input type="range" id="hslSat" min="0" max="60" step="5" value="30"></div>
       <div class="control"><div class="control-head"><span class="name">Lightness bias</span><span class="val" id="hslLightVal">+0%</span></div><input type="range" id="hslLight" min="-30" max="30" step="5" value="0"></div>
       <button class="panel-reset" data-reset="hsl" type="button" title="Restore HSL defaults">Reset</button>
+      <div class="panel-note" id="hslGreyNote" hidden>Near-grayscale input — hue schemes need chroma to vary, so accents were lifted to ~14% saturation to make the scheme visible. For grey inputs, OKLCH-Scored or Material give cleaner results.</div>
     </div>
 
     <div class="method-panel" id="materialPanel" data-method-panel="material">
@@ -1812,6 +1815,13 @@ function generatePaletteHSL(primaryHex, opts={}){
   const lightBias = (opts.lightBias ?? 0) / 100;
 
   const primary = hexToHsl(primaryHex);
+  // Near-grayscale guard: classical schemes vary HUE, which is invisible when
+  // the input has almost no saturation — every rotation renders as the same
+  // grey (e.g. #27272A). Lift accent saturation to a floor so the scheme
+  // actually shows. Mono is exempt: a monochrome of a grey is correctly grey.
+  const NEAR_GREY_S = 0.10, SAT_FLOOR = 0.14;
+  const isNearGrey = primary.s < NEAR_GREY_S;
+  const greyFloored = isNearGrey && scheme !== 'mono';
   const offsets = HSL_SCHEMES[scheme] || HSL_SCHEMES.analogous;
   const v = opts.version | 0;
   // Version variations: rotate the whole spread + tweak L/S in a deterministic way
@@ -1837,7 +1847,7 @@ function generatePaletteHSL(primaryHex, opts={}){
     } else {
       hsl = {
         h: mod(primary.h + off + va.rot, 360),
-        s: clamp(primary.s * (1 - satDrop) + va.sDelta, 0, 1),
+        s: clamp(Math.max(primary.s * (1 - satDrop) + va.sDelta, greyFloored ? SAT_FLOOR : 0), 0, 1),
         l: clamp(primary.l + lightBias + (i === 2 ? 0.04 : 0) + va.lDelta, 0.12, 0.92)
       };
     }
@@ -1854,6 +1864,7 @@ function generatePaletteHSL(primaryHex, opts={}){
 
   return {
     method: 'hsl',
+    hslNearGrey: greyFloored,
     inputHex: primaryHex,
     userInputHex: primaryHex,
     inputLch: hexToOklch(primaryHex),
@@ -4417,6 +4428,8 @@ function rerender(){
     renderSuggestions(palette.suggestions, palette.primary.hex, palette.userInputHex);
   }
   renderPalette(palette);
+  const greyNote = document.getElementById('hslGreyNote');
+  if (greyNote) greyNote.hidden = !(CURRENT_METHOD === 'hsl' && palette.hslNearGrey);
   renderTabSwatches(palette);
   renderStatus(palette.statuses);
   // Paper neutrals — derived from current primary + PAPER_OPTS (sliders / preset cycle)
