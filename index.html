@@ -52,15 +52,16 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
 
   /* HERO */
   header{padding-bottom:40px;border-bottom:1px solid var(--line);margin-bottom:40px}
-  .hero-shell{display:flex;gap:36px;align-items:flex-start}
+  .hero-shell{display:flex;gap:36px;align-items:stretch}
   .hero{display:flex;flex-direction:column;flex:1 1 auto;min-width:0}
-  .hero-aside{flex:none;width:300px;display:flex;flex-direction:column;align-items:flex-end;gap:18px}
+  /* aside stretches to hero height; wheel pinned to the bottom line */
+  .hero-aside{flex:none;width:300px;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:18px}
   .hero-aside .toolbar{margin-bottom:0}
   .hero-aside .hue-map-wrap{width:300px;height:300px;align-self:center}
   .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
   h1{font-size:clamp(30px,4.2vw,46px);line-height:1.08;letter-spacing:-.02em;font-weight:600;margin-bottom:10px}
   h1 em{font-style:normal;background:linear-gradient(105deg,var(--accent-grad-a),var(--accent-grad-b));-webkit-background-clip:text;background-clip:text;color:transparent;transition:background .3s ease}
-  .lede{font-size:16px;color:var(--muted);max-width:560px;line-height:1.5;margin-bottom:28px}
+  .lede{font-size:16px;color:var(--muted);max-width:760px;line-height:1.5;margin-bottom:28px}
   .wordmark{display:inline-flex;align-items:baseline;gap:1px;font-size:24px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:16px;text-decoration:none}
   .wordmark .wm-4{background:linear-gradient(105deg,var(--accent-grad-a,#5B6CFF),var(--accent-grad-b,#A78BFA));-webkit-background-clip:text;background-clip:text;color:transparent}
   .wordmark .wm-ac{color:var(--fg)}
@@ -72,8 +73,12 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .step1-row{display:flex;align-items:stretch;gap:0;margin-bottom:14px}
   .input-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
   .ib-color{flex:0 0 auto;display:flex;align-items:center;gap:14px}
-  .ib-theme{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
-  .ib-theme .tag-zone{padding:0}
+  .ib-color .hex-field{min-width:0}
+  .ib-theme{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+  /* tag trigger + the color boxes share the top row; chips drop below */
+  .ib-theme-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .ib-theme-top .tag-zone{flex:0 0 auto;padding:0}
+  .ib-theme-top .presets{flex:1;min-width:0}
   .ib-theme .tag-trigger{white-space:nowrap}
   .step1-row > .input-divider{flex:none;align-self:center;margin:0 6px}
 
@@ -121,7 +126,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     font-family:var(--mono);font-size:10px;letter-spacing:.16em;
     color:var(--muted);font-weight:700;
   }
-  .presets{display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--line)}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-start}
   .preset{width:32px;height:32px;border-radius:8px;border:1px solid rgba(0,0,0,.08);cursor:pointer;transition:transform .12s}
   .preset:hover{transform:translateY(-2px)}
   .controls{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;color:var(--muted)}
@@ -1008,7 +1013,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
           <span class="wm-4">4</span><span class="wm-ac">ac</span><span class="wm-tld">.org</span>
         </a>
         <div class="eyebrow">4 Awesome Colorizers · v0.3.7</div>
-        <h1>One hex in. A full, accessible <em>palette</em> out.</h1>
+        <h1>One hex in, full <em>palette</em> out.</h1>
         <p class="lede">Primary, 3 accents, status colors, a tunable Paper neutral system, 100–900 ramps, and a per-pair compatibility breakdown. Export-ready. No signup.</p>
 
         <div class="hero-step" id="heroStep1">Step 1 — your color</div>
@@ -1017,7 +1022,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
           <label class="swatch-input" id="swatchInputWrap">
             <input type="color" id="colorInput" value="#5B6CFF">
           </label>
-          <div class="hex-field" style="max-width:180px;flex:0 1 auto">
+          <div class="hex-field" style="max-width:180px;flex:0 0 auto">
             <label for="hexInput">Input color</label>
             <input type="text" id="hexInput" value="#5B6CFF" maxlength="7" autocomplete="off" spellcheck="false">
           </div>
@@ -1026,6 +1031,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
           <div class="input-divider" aria-hidden="true"><span>OR</span></div>
 
           <div class="input-card ib-theme">
+          <div class="ib-theme-top">
           <div class="tag-zone" id="tagZone">
             <div class="tag-popover-wrap">
               <button class="tag-trigger" id="tagTriggerBtn" aria-haspopup="true" aria-expanded="false" title="Pick a theme to refine the suggested colors">
@@ -1050,8 +1056,6 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
                 </div>
               </div>
             </div>
-            <div id="tagSelectedChips" style="display:flex;gap:5px;flex-wrap:wrap"></div>
-            <div class="tag-conflict-hint" id="tagConflictHint" role="alert"></div>
           </div>
 
           <div class="presets" aria-label="Theme swatches">
@@ -1064,6 +1068,9 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
             <button class="preset" style="background:#EC4899" data-hex="#EC4899" title="Pink"></button>
             <button class="preset" style="background:#0F172A" data-hex="#0F172A" title="Slate"></button>
           </div>
+          </div><!-- /ib-theme-top -->
+          <div id="tagSelectedChips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+          <div class="tag-conflict-hint" id="tagConflictHint" role="alert"></div>
           </div><!-- /ib-theme -->
         </div><!-- /step1-row -->
       </div><!-- /hero -->
@@ -4058,11 +4065,11 @@ function updateFavicon(palette){
   if (link) link.href = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
 
-function generateForCurrentMethod(){
+function paletteForMethod(method){
   // Bake the global Repeat versions into the per-method opts so generators see the salt
   const withV = (o) => ({ ...o, version: PALETTE_V, statusVersion: STATUS_V });
   let palette;
-  switch (CURRENT_METHOD){
+  switch (method){
     case 'hsl':      palette = generatePaletteHSL(ACTIVE_PRIMARY_HEX, withV(HSL_OPTS)); break;
     case 'material': palette = generatePaletteMaterial(ACTIVE_PRIMARY_HEX, withV(MAT_OPTS)); break;
     case 'hybrid':   palette = generatePaletteHybrid(ACTIVE_PRIMARY_HEX, withV(HYB_OPTS)); break;
@@ -4070,6 +4077,10 @@ function generateForCurrentMethod(){
     default:         palette = generatePalette(ACTIVE_PRIMARY_HEX, USER_INPUT_HEX); break;
   }
   return applyLocksToPalette(palette);
+}
+
+function generateForCurrentMethod(){
+  return paletteForMethod(CURRENT_METHOD);
 }
 
 // Overlay LOCKS onto any palette result so non-OKLCH methods also honor locks.
@@ -4131,15 +4142,26 @@ function applyLocksToPalette(palette){
   return palette;
 }
 
-function renderTabSwatches(palette){
-  const cols = [
-    palette.primary && palette.primary.hex,
-    palette.accent1 && palette.accent1.hex,
-    palette.accent2 && palette.accent2.hex,
-    palette.accent3 && palette.accent3.hex
-  ].filter(Boolean);
-  const html = cols.map(h => `<i style="background:${h}"></i>`).join('');
-  document.querySelectorAll('.method-tab .tab-swatches').forEach(el => { el.innerHTML = html; });
+function renderTabSwatches(currentPalette){
+  // Each tab previews ITS OWN method's result, so the four chips differ
+  // per method and match what you get when you click that tab.
+  document.querySelectorAll('.method-tab').forEach(tab => {
+    const m = tab.dataset.method;
+    const host = tab.querySelector('.tab-swatches');
+    if (!host) return;
+    let p;
+    try {
+      p = (m === CURRENT_METHOD && currentPalette) ? currentPalette : paletteForMethod(m);
+    } catch (e) { p = null; }
+    if (!p){ host.innerHTML = ''; return; }
+    const cols = [
+      p.primary && p.primary.hex,
+      p.accent1 && p.accent1.hex,
+      p.accent2 && p.accent2.hex,
+      p.accent3 && p.accent3.hex
+    ].filter(Boolean);
+    host.innerHTML = cols.map(h => `<i style="background:${h}"></i>`).join('');
+  });
 }
 
 function rerender(){
