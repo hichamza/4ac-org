@@ -1690,13 +1690,20 @@ function generatePalette(primaryHex, userInputHex){
     return pickFromPool(filtered, SLOT_VERSION[slot]);
   };
 
+  // The color a slot contributes downstream must be the one actually SHOWN
+  // (hexToOklch of its displayed hex), identically whether or not it's locked.
+  // Otherwise locking a slot at its current value swaps the idealized pool
+  // candidate for the gamut-real round-trip, which silently re-derives later
+  // accents (a2 feeds a3's pool). Normalizing both paths makes lock a no-op.
+  const seedLch = (a) => a ? hexToOklch(oklchToHex(a.color)) : null;
+
   const a1Pool = findPrimaryAccent(primaryLch, primaryLch.h);
   const a1 = pickAccent('accent1', a1Pool);
 
-  const a2Pool = a1 ? findSecondaryAccent(primaryLch, a1.color) : [];
+  const a2Pool = a1 ? findSecondaryAccent(primaryLch, seedLch(a1)) : [];
   const a2 = pickAccent('accent2', a2Pool);
 
-  const a3Pool = (a1 && a2) ? findTertiaryAccent(primaryLch, a1.color, a2.color) : [];
+  const a3Pool = (a1 && a2) ? findTertiaryAccent(primaryLch, seedLch(a1), seedLch(a2)) : [];
   const a3 = pickAccent('accent3', a3Pool);
 
   // Statuses each get their own pool + lock + version.
