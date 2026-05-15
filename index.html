@@ -180,6 +180,12 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     padding:4px 12px 0;
   }
   .tag-conflict-hint.show{display:block}
+  /* When no tags are picked these trailing nodes are empty. #tagSelectedChips
+     carries an inline display:flex, so without this it stays a rendered flex
+     item and the parent card's column gap reserves phantom space below the
+     content — making .ib-theme's bottom padding look larger than .ib-color's.
+     Collapse it when empty so both cards center their content identically. */
+  #tagSelectedChips:empty{display:none!important}
 
   /* TAG POPOVER */
   .tag-popover-wrap{position:relative;display:inline-block}
@@ -764,16 +770,22 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .tab-swatches{display:flex;gap:5px;flex:none;opacity:1}
   .tab-swatches i{width:14px;height:14px;border-radius:4px;display:block;border:1px solid rgba(255,255,255,.10)}
   .method-tab:focus-visible{outline:2px solid var(--fg);outline-offset:-2px}
-  /* Dock: one connected card holding the active method's controls */
+  /* Dock: one connected card holding the active method's controls.
+     The tab strip spans the dock's FULL width, so both of the dock's top
+     corners must be square — the rounded outer corners of the whole block
+     come from the tabs' own rounded tops (10px 10px 0 0). The dock only
+     rounds its bottom. The active tab merges in via its shared --card bg
+     and margin-bottom:-1px, so no per-tab corner trick is needed. */
   .method-dock{
     position:relative;background:var(--card);border:1px solid var(--line);
-    border-radius:0 10px 10px 10px;box-shadow:var(--shadow);
+    border-radius:0 0 10px 10px;box-shadow:var(--shadow);
   }
   @media (max-width:640px){
-    /* All 4 tabs stay in one row on phones — shrink the name + swatches a
-       touch and let a long name (OKLCH-SCORED) wrap rather than overflow. */
-    .method-tab .tab-name{font-size:10px;letter-spacing:.02em;gap:6px;line-height:1.25}
-    .method-tab .tab-name::before{width:6px;height:6px}
+    /* All 4 tabs stay in one row on phones. Keep the name at full readable
+       size — never shrink it — and let a long name (OKLCH-SCORED) wrap onto
+       a second line rather than shrinking or overflowing. */
+    .method-tab .tab-name{font-size:12px;letter-spacing:.04em;gap:6px;line-height:1.3;white-space:normal;word-break:break-word}
+    .method-tab .tab-name::before{width:7px;height:7px}
     .tab-swatches{gap:4px}
     .tab-swatches i{width:12px;height:12px}
   }
@@ -786,7 +798,18 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .method-panel .control-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11px}
   .method-panel .control-head .name{color:var(--fg);font-weight:500}
   .method-panel .control-head .val{color:var(--muted)}
-  .method-panel select{font-family:var(--mono);font-size:12px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;outline:none;cursor:pointer}
+  /* Native select arrow is unstyleable and renders oversized/misaligned on
+     the dark theme — replace it with a consistent inline-SVG caret, anchored
+     a fixed distance from the right edge, with padding so text never overlaps it. */
+  .method-panel select{
+    font-family:var(--mono);font-size:12px;background-color:var(--bg);color:var(--fg);
+    border:1px solid var(--line);border-radius:8px;padding:6px 32px 6px 10px;
+    outline:none;cursor:pointer;
+    -webkit-appearance:none;-moz-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999da6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 10px center;background-size:12px 12px;
+  }
+  .method-panel select::-ms-expand{display:none}
   .method-panel select:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
   .method-panel input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:3px;background:var(--line);border-radius:2px;outline:none}
   .method-panel input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--fg);cursor:pointer}
@@ -865,7 +888,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   @media (max-width:1023px){
     .hero-shell{flex-direction:column;gap:28px}
     .hero-aside{width:100%;align-items:stretch}
-    .hero-aside .toolbar{justify-content:flex-start}
+    .hero-aside .toolbar{justify-content:flex-end}
     .hue-map-wrap{align-self:center}
     .palette{grid-template-columns:repeat(2,1fr)}
     .paper-grid{grid-template-columns:repeat(4,1fr)}
@@ -920,7 +943,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     .weight{min-width:0;width:100%;flex:none;gap:8px}
     .method-panel .control-head,
     .weight-head{font-size:13px}
-    .method-panel select{font-size:15px;padding:12px 14px;min-height:44px;border-radius:10px}
+    .method-panel select{font-size:15px;padding:12px 40px 12px 14px;min-height:44px;border-radius:10px;background-position:right 14px center;background-size:14px 14px}
     /* Slider: thicker track + larger thumb for fat-finger use */
     .method-panel input[type=range],
     .weight input[type=range]{height:6px;border-radius:3px}
@@ -955,9 +978,12 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     .ib-theme .tag-trigger{padding:10px 12px;font-size:12px;gap:6px;letter-spacing:.02em;min-height:44px;border-radius:10px}
     .ib-theme .tag-trigger .tag-icon,
     .ib-theme .tag-trigger .tag-caret{width:12px;height:12px}
-    /* Preset color chips — fat-finger friendly */
-    .ib-theme .presets{justify-content:flex-start;gap:8px}
-    .ib-theme .preset{width:40px;height:40px;border-radius:10px}
+    /* Preset color chips — always 8 in ONE row next to the tag pill. The
+       presets box is flex:1 of the .ib-theme-top row; an 8-column grid with
+       square (aspect-ratio:1) cells lets every chip shrink to fit instead of
+       wrapping, no matter how narrow the viewport. */
+    .ib-theme .presets{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;align-content:center}
+    .ib-theme .preset{width:100%;height:auto;aspect-ratio:1;min-width:0;border-radius:9px}
     /* Method tabs: keep all 4 across, drop descriptions, finger-friendly height */
     .method-tab{padding:14px 8px 15px}
     .method-tab .tab-desc{display:none}
@@ -978,15 +1004,39 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     body.view-line .status:first-of-type{border-left:0}
     /* Compatibility breakdown padding tightens */
     .breakdown{padding:16px}
-    /* Toolbar buttons — bigger tap targets */
-    .toolbar{justify-content:flex-start;gap:10px}
-    .toolbar-btn{padding:10px 14px;font-size:12px;min-height:44px;border-radius:10px}
-    .toolbar-btn svg{width:14px;height:14px}
-    /* View controls — Grid/Line segments and Try Other Accents */
-    .view-controls{padding:12px;gap:12px}
-    .view-controls .vc-segment{padding:10px 14px;font-size:12px;min-height:44px;border-radius:10px}
+    /* Toolbar → icon-only, pinned to the top-right of the header on the same
+       line as the wordmark. The toolbar lives inside .hero-aside (after the
+       hero), so anchor it absolutely to the header instead of moving the DOM.
+       .hero-aside only otherwise holds the hue wheel (display:none on mobile),
+       so collapse it with display:contents — that removes the empty flex item
+       (and its hero-shell column gap) without hiding the absolute toolbar,
+       whose containing block is the positioned <header>. */
+    header{position:relative}
+    .hero-aside{display:contents}
+    .toolbar{
+      position:absolute;top:0;right:0;margin:0;z-index:6;
+      justify-content:flex-end;gap:8px;flex-wrap:nowrap;
+    }
+    /* font-size:0 drops the text node label; the icon SVGs keep their
+       explicit px sizes, so each button becomes a clean square icon. */
+    .toolbar-btn{padding:10px;font-size:0;gap:0;min-height:0;border-radius:10px}
+    .toolbar-btn svg{width:18px;height:18px}
+    /* Hide the Export dropdown caret — "just icons" */
+    #exportBtn svg:last-child{display:none}
+    /* View controls — Grid/Line segments and Try Other Accents share ONE row:
+       the segment group sits left, the regen button is pushed right. Override
+       the ≤1023px rule that forced the button full-width onto its own line. */
+    .view-controls{padding:12px;gap:10px;flex-wrap:nowrap}
+    .view-controls .vc-group{flex:0 0 auto}
+    /* Segment matches its pill group — fully round, not 10px (the group is
+       border-radius:999px, so a slightly-rounded chip inside it looks wrong). */
+    .view-controls .vc-segment{padding:10px 14px;font-size:12px;min-height:44px;border-radius:999px}
     .view-controls .vc-segment svg{width:13px;height:13px}
-    .view-controls .vc-regen{padding:13px 22px;font-size:12px;min-height:48px;border-radius:999px}
+    .view-controls .vc-regen{
+      width:auto;margin-top:0;margin-left:auto;flex:0 1 auto;min-width:0;
+      padding:13px 18px;font-size:12px;min-height:48px;border-radius:999px;
+      white-space:nowrap;justify-content:center;
+    }
     .view-controls .vc-regen svg{width:15px;height:15px}
     /* Paper "Tune" button matches toolbar treatment */
     .section-regen{padding:10px 14px;font-size:11px;min-height:44px;border-radius:10px}
@@ -1307,7 +1357,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
 
     <footer>
       OKLCH · WCAG 2.1 · drop a hex above to remix<br>
-      Built by <a href="https://github.com/hichamza" style="color:inherit;text-decoration:underline">Hicham Zinalabdin</a>
+      Built by <a href="https://github.com/hichamza" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Hicham Zinalabdin</a>
       <br>
       <a class="gh-repo-link" href="https://github.com/hichamza/4ac-org" target="_blank" rel="noopener" aria-label="View hichamza/4ac-org on GitHub">
         <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
