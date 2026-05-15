@@ -1050,56 +1050,6 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     <!-- TOP ROW: input + weights stacked, color wheel on the side -->
     <div class="top-row">
     <div class="top-row-left">
-    <div class="input-bar">
-      <label class="swatch-input" id="swatchInputWrap">
-        <input type="color" id="colorInput" value="#5B6CFF">
-      </label>
-      <div class="hex-field" style="max-width:180px;flex:0 1 auto">
-        <label>Input color</label>
-        <input type="text" id="hexInput" value="#5B6CFF" maxlength="7" autocomplete="off" spellcheck="false">
-      </div>
-
-      <div class="input-divider" aria-hidden="true"><span>OR</span></div>
-
-      <div class="tag-zone" id="tagZone">
-        <div class="tag-popover-wrap">
-          <button class="tag-trigger" id="tagTriggerBtn" aria-haspopup="true" aria-expanded="false" title="Select Theme to refine the suggested colors">
-            <svg class="tag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-            <span id="tagTriggerLabel">Select Theme</span>
-            <span class="badge" id="tagBadge" style="display:none">0</span>
-            <svg class="tag-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="tag-popover" id="tagPopover" role="dialog" aria-label="Pick tags to refine suggestions">
-            <div class="tag-popover-header">Pick tags to refine suggestions</div>
-            <div class="tag-group">
-              <div class="tag-group-label">Topic — what is this for?</div>
-              <div class="tag-options" id="tagOptionsTopic"></div>
-            </div>
-            <div class="tag-group">
-              <div class="tag-group-label">Feel — what mood?</div>
-              <div class="tag-options" id="tagOptionsFeel"></div>
-            </div>
-            <div class="tag-popover-footer">
-              <button class="tag-clear-btn" id="tagClearBtn">Clear all</button>
-              <span class="stats" id="tagStats">No tags</span>
-            </div>
-          </div>
-        </div>
-        <div id="tagSelectedChips" style="display:flex;gap:5px;flex-wrap:wrap"></div>
-        <div class="tag-conflict-hint" id="tagConflictHint" role="alert"></div>
-      </div>
-
-      <div class="presets">
-        <button class="preset" style="background:#5B6CFF" data-hex="#5B6CFF" title="Indigo"></button>
-        <button class="preset" style="background:#0EA5E9" data-hex="#0EA5E9" title="Sky"></button>
-        <button class="preset" style="background:#10B981" data-hex="#10B981" title="Emerald"></button>
-        <button class="preset" style="background:#F59E0B" data-hex="#F59E0B" title="Amber"></button>
-        <button class="preset" style="background:#EF4444" data-hex="#EF4444" title="Red"></button>
-        <button class="preset" style="background:#A855F7" data-hex="#A855F7" title="Purple"></button>
-        <button class="preset" style="background:#EC4899" data-hex="#EC4899" title="Pink"></button>
-        <button class="preset" style="background:#0F172A" data-hex="#0F172A" title="Slate"></button>
-      </div>
-    </div>
 
     <div class="weights" data-m1-only>
       <div class="weights-label">Weights</div>
