@@ -140,7 +140,7 @@ Also works as-is on Netlify, Vercel, Cloudflare Pages, S3, or any static host.
 - **OKLCH color math** computed directly from sRGB hex — no external color libraries.
 - **WCAG 2.1** relative-luminance contrast for every accessibility check.
 - **State encoding** in the URL hash, so any palette is a shareable link.
-- **No analytics, no telemetry, no network calls.** The file you open is the file you use.
+- **Privacy-light.** Anonymous usage analytics via Google Analytics 4 (`gtag.js`) — aggregate interaction events only, no accounts, no personal data. Your colors never leave the browser: palette state lives entirely in the URL hash.
 
 ---
 
