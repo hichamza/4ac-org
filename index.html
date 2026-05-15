@@ -675,8 +675,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   body.view-line .swatch.empty .swatch-color{justify-content:center;align-items:center}
 
   /* TOAST */
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:999px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;opacity:0;transition:all .25s;pointer-events:none;z-index:99;max-width:min(640px,90vw);text-align:center;line-height:1.45}
-  .toast.warn{background:#F59E0B;color:#1A1A1A;font-weight:600}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:999px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;opacity:0;transition:all .25s;pointer-events:none;z-index:99}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
   /* TOOLTIP — single floating element managed by JS so swatch overflow:hidden doesn't clip it */
@@ -803,6 +802,10 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .panel-reset:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
   .method-panel,
   .weights{position:relative}
+  /* Near-grayscale notice — styled as a catchy amber WARNING, not muted info. */
+  .method-panel .panel-note{flex:1 1 100%;margin-top:4px;display:flex;gap:9px;align-items:flex-start;font-family:var(--mono);font-size:11px;line-height:1.55;letter-spacing:.02em;color:#FCD34D;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.45);border-left:3px solid #F59E0B;border-radius:8px;padding:9px 12px}
+  .method-panel .panel-note-ico{color:#F59E0B;font-size:13px;line-height:1.4;flex:none}
+  .method-panel .panel-note[hidden]{display:none}
 
   body[data-method="hsl"] [data-m1-only],
   body[data-method="material"] [data-m1-only],
@@ -1173,6 +1176,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
       <div class="control"><div class="control-head"><span class="name">Saturation drop</span><span class="val" id="hslSatVal">30%</span></div><input type="range" id="hslSat" min="0" max="60" step="5" value="30"></div>
       <div class="control"><div class="control-head"><span class="name">Lightness bias</span><span class="val" id="hslLightVal">+0%</span></div><input type="range" id="hslLight" min="-30" max="30" step="5" value="0"></div>
       <button class="panel-reset" data-reset="hsl" type="button" title="Restore HSL defaults">Reset</button>
+      <div class="panel-note" id="hslGreyNote" role="status" hidden><span class="panel-note-ico" aria-hidden="true">⚠</span><span>Near-grayscale input — hue schemes need chroma to vary, so accents were lifted to ~14% saturation to make the scheme visible. For grey inputs, OKLCH-Scored or Material give cleaner results.</span></div>
     </div>
 
     <div class="method-panel" id="materialPanel" data-method-panel="material">
@@ -4257,61 +4261,38 @@ function renderColorWheel(palette){
     return { ...wcagLevel(r), ratio: r };
   };
   const items = [];
-  if (palette.primary) items.push({ ...point(palette.primary.color), hex: palette.primary.hex, label: 'P', wcag: null, big: true });
-  if (palette.accent1){ const w = wcagFor(palette.accent1); items.push({ ...point(palette.accent1.color), hex: palette.accent1.hex, label: w.level, wcag: w }); }
-  if (palette.accent2){ const w = wcagFor(palette.accent2); items.push({ ...point(palette.accent2.color), hex: palette.accent2.hex, label: w.level, wcag: w }); }
-  if (palette.accent3){ const w = wcagFor(palette.accent3); items.push({ ...point(palette.accent3.color), hex: palette.accent3.hex, label: w.level, wcag: w }); }
+  if (palette.primary) items.push({ ...point(palette.primary.color), hex: palette.primary.hex, role: 'Primary', isPrimary: true, wcag: null });
+  if (palette.accent1){ const w = wcagFor(palette.accent1); items.push({ ...point(palette.accent1.color), hex: palette.accent1.hex, role: 'A1', wcag: w }); }
+  if (palette.accent2){ const w = wcagFor(palette.accent2); items.push({ ...point(palette.accent2.color), hex: palette.accent2.hex, role: 'A2', wcag: w }); }
+  if (palette.accent3){ const w = wcagFor(palette.accent3); items.push({ ...point(palette.accent3.color), hex: palette.accent3.hex, role: 'A3', wcag: w }); }
 
-  const lines = items.map(it =>
-    `<line x1="${cx}" y1="${cy}" x2="${it.x}" y2="${it.y}" stroke="${it.hex}" stroke-width="${it.big ? 2.2 : 1.5}" stroke-opacity="0.55" stroke-linecap="round"/>`
+  const esc = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const tipFor = (it) => it.isPrimary
+    ? `Primary · ${it.hex}`
+    : `${it.role} · ${it.hex} · WCAG ${it.wcag.level} (${it.wcag.ratio.toFixed(2)}:1) vs primary`;
+
+  const spokes = items.map(it =>
+    `<line x1="${cx}" y1="${cy}" x2="${it.x}" y2="${it.y}" stroke="${it.hex}" stroke-width="${it.isPrimary ? 2 : 1.4}" stroke-opacity="0.5" stroke-linecap="round"/>`
   ).join('');
 
-  const dots = items.map(it => {
-    const r = it.big ? 13 : 7;
-    // Position the badge above or below the dot depending on its quadrant
-    const above = it.y < cy;
-    const labelOffsetY = above ? -r - 6 : r + 18;
-    // Primary — the anchor everything else is measured against. Make it
-    // unmistakable: largest dot, a bright double ring, and a solid
-    // high-contrast "PRIMARY" pill (vs. the small muted "P" before).
-    if (it.big){
-      const labelTxt = 'PRIMARY';
-      const labelW = labelTxt.length * 6 + 16;
-      const labelH = 14;
-      const lx = it.x - labelW / 2;
-      const ly = it.y + labelOffsetY - labelH + 2;
-      const title = `Primary · ${it.hex}`;
-      return `
-        <circle cx="${it.x}" cy="${it.y}" r="${r + 7}" fill="none" stroke="var(--fg)" stroke-width="1.5" stroke-opacity="0.45"/>
-        <circle cx="${it.x}" cy="${it.y}" r="${r + 3}" fill="var(--bg)"/>
-        <circle cx="${it.x}" cy="${it.y}" r="${r}" fill="${it.hex}" stroke="var(--fg)" stroke-width="3"><title>${title}</title></circle>
-        <rect x="${lx}" y="${ly}" width="${labelW}" height="${labelH}" rx="7" fill="var(--fg)"><title>${title}</title></rect>
-        <text x="${it.x}" y="${ly + labelH - 4}" text-anchor="middle" class="wcag-badge-svg" fill="var(--bg)" font-weight="700">${labelTxt}</text>
-      `;
-    }
-    // For accents, draw a colored WCAG pill behind the level text
-    if (it.wcag){
-      const labelW = it.label.length * 6 + 12;
-      const labelH = 12;
-      const lx = it.x - labelW / 2;
-      const ly = it.y + labelOffsetY - labelH + 2;
-      const title = `${it.label} · contrast ${it.wcag.ratio.toFixed(2)}:1 vs primary`;
-      return `
-        <circle cx="${it.x}" cy="${it.y}" r="${r + 2.5}" fill="var(--bg)"/>
-        <circle cx="${it.x}" cy="${it.y}" r="${r}" fill="${it.hex}" stroke="var(--fg)" stroke-width="1.2"><title>${title}</title></circle>
-        <rect x="${lx}" y="${ly}" width="${labelW}" height="${labelH}" rx="6" fill="${it.wcag.color}"><title>${title}</title></rect>
-        <text x="${it.x}" y="${ly + labelH - 3}" text-anchor="middle" class="wcag-badge-svg" fill="#fff" font-weight="700">${it.label}</text>
-      `;
-    }
-    return `
-      <circle cx="${it.x}" cy="${it.y}" r="${r + 2.5}" fill="var(--bg)"/>
-      <circle cx="${it.x}" cy="${it.y}" r="${r}" fill="${it.hex}" stroke="var(--fg)" stroke-width="1.2"/>
-      <text x="${it.x}" y="${it.y + labelOffsetY}" text-anchor="middle" font-family="var(--mono)" font-size="9" font-weight="600" fill="var(--muted)" letter-spacing="0.04em">${it.label}</text>
-    `;
-  }).join('');
+  // Labels are hover-only (native <title>) so the wheel stays clean no matter
+  // how close the colors sit. Primary is distinguished by a ring + size only.
+  const dot = (it, cxv, cyv, scale=1) => {
+    const r = (it.isPrimary ? 7 : 6) * scale;
+    const ring = it.isPrimary
+      ? `<circle cx="${cxv}" cy="${cyv}" r="${r + 3.5*scale}" fill="none" stroke="var(--fg)" stroke-width="${1.6*scale}" stroke-opacity="0.6"/>`
+      : '';
+    return `<g><title>${esc(tipFor(it))}</title>
+      ${ring}
+      <circle cx="${cxv}" cy="${cyv}" r="${r + 2.5*scale}" fill="var(--bg)"/>
+      <circle cx="${cxv}" cy="${cyv}" r="${r}" fill="${it.hex}" stroke="var(--fg)" stroke-width="${(it.isPrimary?2:1.2)*scale}"/>
+      <circle cx="${cxv}" cy="${cyv}" r="${r + 7}" fill="transparent"/>
+    </g>`;
+  };
+  const dots = items.map(it => dot(it, it.x, it.y)).join('');
 
-  const center = `<circle cx="${cx}" cy="${cy}" r="3" fill="var(--fg)"/>`;
-  overlay.innerHTML = lines + center + dots;
+  const center = `<circle cx="${cx}" cy="${cy}" r="2.5" fill="var(--fg)" fill-opacity="0.55"/>`;
+  overlay.innerHTML = spokes + center + dots;
 }
 
 function updateFavicon(palette){
@@ -4433,7 +4414,6 @@ function renderTabSwatches(currentPalette){
   });
 }
 
-let _hslGreyToastShown = false;
 function rerender(){
   const palette = generateForCurrentMethod();
   document.documentElement.style.setProperty('--accent-grad-a', palette.primary.hex);
@@ -4454,15 +4434,10 @@ function rerender(){
     renderSuggestions(palette.suggestions, palette.primary.hex, palette.userInputHex);
   }
   renderPalette(palette);
-  // Near-grayscale HSL notice — surfaced as a warning toast, edge-triggered so
-  // it fires once when you land in that state (not on every slider tick).
-  const nearGreyHSL = CURRENT_METHOD === 'hsl' && !!palette.hslNearGrey;
-  if (nearGreyHSL && !_hslGreyToastShown){
-    showToast('Near-grayscale input — hue schemes need chroma to vary, so accents were lifted to ~14% saturation. For grey inputs, OKLCH-Scored or Material give cleaner results.', 'warn');
-    _hslGreyToastShown = true;
-  } else if (!nearGreyHSL){
-    _hslGreyToastShown = false;
-  }
+  // Near-grayscale HSL notice — inline warning panel, shown only when the
+  // saturation floor actually kicked in for the HSL method.
+  const greyNote = document.getElementById('hslGreyNote');
+  if (greyNote) greyNote.hidden = !(CURRENT_METHOD === 'hsl' && palette.hslNearGrey);
   renderTabSwatches(palette);
   renderStatus(palette.statuses);
   // Paper neutrals — derived from current primary + PAPER_OPTS (sliders / preset cycle)
@@ -4509,14 +4484,12 @@ document.addEventListener('mouseout', (e) => {
 window.addEventListener('scroll', () => { if (tooltipTarget) positionTooltip(tooltipTarget); }, { passive: true });
 window.addEventListener('resize', () => { if (tooltipTarget) positionTooltip(tooltipTarget); });
 
-function showToast(msg='Copied', type='info'){
+function showToast(msg='Copied'){
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.classList.toggle('warn', type === 'warn');
   t.classList.add('show');
   clearTimeout(t._timer);
-  // Warnings carry a full sentence — keep them up long enough to read.
-  t._timer = setTimeout(() => t.classList.remove('show'), type === 'warn' ? 5200 : 1400);
+  t._timer = setTimeout(() => t.classList.remove('show'), 1400);
 }
 
 // Edit a slot's color via a hex text prompt (preferred over the OS color picker
