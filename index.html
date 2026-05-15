@@ -1018,7 +1018,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
         <a href="https://4ac.org" class="wordmark" title="4 Awesome Colorizers">
           <span class="wm-4">4</span><span class="wm-ac">ac</span><span class="wm-tld">.org</span>
         </a>
-        <div class="eyebrow">4 Awesome Colorizers · v0.3.7</div>
+        <div class="eyebrow">4 Awesome Colorizers · v0.4.0</div>
         <h1>One hex in, full <em>palette</em> out.</h1>
         <p class="lede">Primary, 3 accents, status colors, a tunable Paper neutral system, 100–900 ramps, and a per-pair compatibility breakdown. Export-ready. No signup.</p>
 
@@ -2741,15 +2741,21 @@ function generatePaletteMaterial(primaryHex, opts={}){
   const primaryLch = hexToOklch(primaryHex);
   const primaryHsl = hexToHsl(primaryHex);
 
-  // Base filter from the dropdown (all/warm/cool/neutral/metallic)
+  // Base pool: the curated library, narrowed ONLY by the style dropdown
+  // (all/warm/cool/neutral/metallic). Topic/feel tags (tech, saas, …) must
+  // never shrink this — the curated entries don't carry that taxonomy, so
+  // filtering by it emptied the pool and produced zero accents. Tags only
+  // re-rank (below); the base set is always present.
   let pool = MATERIAL_LIBRARY.filter(m => filter === 'all' ? true : m.tags.includes(filter));
-  // Tag-driven filter: include the bigger Tailwind library when tags are active so we have variety
-  if (SELECTED_TAGS.size > 0){
+  const tagsActive = SELECTED_TAGS.size > 0;
+  // When tags are active, ADD tag-matched Tailwind colors for variety —
+  // a union with the curated set, never a replacement (dedupe by hex).
+  if (tagsActive){
+    const seen = new Set(pool.map(m => m.hex.toUpperCase()));
     const tagged = TAILWIND_TAGGED
       .map(c => ({ name: c.name, hex: c.hex, tags: c.tags, family: c.family }))
-      .filter(c => scoreColorByTags(c) >= 0.5);
-    pool = pool.filter(m => SELECTED_TAGS.size === 0 || [...SELECTED_TAGS].some(t => m.tags.includes(t)))
-               .concat(tagged);
+      .filter(c => scoreColorByTags(c) >= 0.35 && !seen.has(c.hex.toUpperCase()));
+    pool = pool.concat(tagged);
   }
 
   const scored = pool.map(m => {
@@ -2760,7 +2766,10 @@ function generatePaletteMaterial(primaryHex, opts={}){
     const fitness = Math.exp(-((dist - sweet)**2) / (2 * sigma * sigma));
     const hueDist = circDist(primaryLch.h, lch.h);
     const hueBonus = clamp(hueDist / 120, 0, 1) * 0.15;
-    return { material: m, color: lch, hex: m.hex.toUpperCase(), dist, score: (fitness + hueBonus) * 100 };
+    // Tag bonus: with tags active, colors matching the selected tags rank
+    // above neutral curated picks — but everything stays eligible.
+    const tagBonus = tagsActive ? scoreColorByTags(m) * 0.40 : 0;
+    return { material: m, color: lch, hex: m.hex.toUpperCase(), dist, score: (fitness + hueBonus + tagBonus) * 100 };
   }).filter(Boolean).sort((a,b) => b.score - a.score);
 
   const picks = [];
