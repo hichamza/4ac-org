@@ -7,7 +7,7 @@ One color in → primary + three accents + status colors + a neutral "paper" sys
 No signup. No build step. No backend. Just open it and design.
 
 <p align="center">
-  <a href="https://hichamza.github.io/4ac-org/" target="_blank" rel="noopener noreferrer"><img alt="Try it live — no signup, no build step, no backend" src="assets/try-it-live.svg" width="520"></a>
+  <a href="https://4ac.org/" target="_blank" rel="noopener noreferrer"><img alt="Try it live — no signup, no build step, no backend" src="assets/try-it-live.svg" width="520"></a>
 </p>
 
 ![Hero — method picker and input panel](assets/01-hero-methods.png)
@@ -140,7 +140,7 @@ Also works as-is on Netlify, Vercel, Cloudflare Pages, S3, or any static host.
 - **OKLCH color math** computed directly from sRGB hex — no external color libraries.
 - **WCAG 2.1** relative-luminance contrast for every accessibility check.
 - **State encoding** in the URL hash, so any palette is a shareable link.
-- **No analytics, no telemetry, no network calls.** The file you open is the file you use.
+- **Privacy-light.** Anonymous usage analytics via Google Analytics 4 (`gtag.js`) — aggregate interaction events only, no accounts, no personal data. Your colors never leave the browser: palette state lives entirely in the URL hash.
 
 ---
 

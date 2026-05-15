@@ -11,3 +11,9 @@ node_modules/
 
 # MCP tool artifacts (Playwright browser snapshots, extensions)
 .playwright-mcp/
+
+# Brainstorming visual companion
+.superpowers/
+
+# Playwright verification screenshots
+hero-*.png
