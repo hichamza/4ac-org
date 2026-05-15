@@ -833,15 +833,8 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .panel-reset:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
   .method-panel,
   .weights{position:relative}
-  /* Near-grayscale notice — styled as a catchy amber WARNING, not muted info. */
-  /* margin-right cancels most of the panel's 90px right padding (kept for the
-     absolutely-positioned Reset button, which only occupies the top row) so
-     this full-width note gets a symmetric ~18px gutter instead of stopping short. */
-  .method-panel .panel-note{flex:1 1 100%;margin-top:4px;margin-right:-72px;display:flex;gap:9px;align-items:flex-start;font-family:var(--mono);font-size:11px;line-height:1.55;letter-spacing:.02em;color:#FCD34D;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.45);border-left:3px solid #F59E0B;border-radius:8px;padding:9px 12px}
-  .method-panel .panel-note-ico{color:#F59E0B;font-size:13px;line-height:1.4;flex:none}
-  .method-panel .panel-note[hidden]{display:none}
-  /* Shared dock advisory — same amber treatment, but a full-width banner that
-     sits at the bottom of the dock for ANY active method (incl. OKLCH). */
+  /* Shared dock advisory — amber WARNING banner, full-width at the bottom of
+     the dock for ANY active method (incl. OKLCH). Not muted info. */
   .method-dock .dock-note{margin:0 18px 16px;display:flex;gap:9px;align-items:flex-start;font-family:var(--mono);font-size:11px;line-height:1.55;letter-spacing:.02em;color:#FCD34D;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.45);border-left:3px solid #F59E0B;border-radius:8px;padding:9px 12px}
   .method-dock .dock-note .panel-note-ico{color:#F59E0B;font-size:13px;line-height:1.4;flex:none}
   .method-dock .dock-note[hidden]{display:none}
@@ -951,8 +944,6 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
        on row 1, so normal padding is fine. */
     .method-panel.active{flex-direction:column;align-items:stretch;gap:20px;padding:18px 16px}
     .method-panel .control{min-width:0;width:100%;flex:none;gap:8px}
-    /* Mobile padding is symmetric (16px) — drop the desktop -72px note offset. */
-    .method-panel .panel-note{margin-right:0}
     .weights{flex-direction:column;align-items:stretch;gap:20px;padding:18px 16px}
     .weight{min-width:0;width:100%;flex:none;gap:8px}
     .method-panel .control-head,
@@ -1089,7 +1080,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
         <a href="https://4ac.org" class="wordmark" title="For a Color!">
           <span class="wm-4">4</span><span class="wm-ac">ac</span><span class="wm-tld">.org</span>
         </a>
-        <div class="eyebrow">For a Color! · v0.4.0</div>
+        <div class="eyebrow">For a Color! · v0.4.1</div>
         <h1>One hex in, full <em>palette</em> out.</h1>
         <p class="lede">Primary, 3 accents, status colors, a tunable Paper neutral system, 100–900 ramps, and a per-pair compatibility breakdown. Export-ready. No signup.</p>
 
@@ -1244,7 +1235,6 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
       <div class="control"><div class="control-head"><span class="name">Saturation drop</span><span class="val" id="hslSatVal">30%</span></div><input type="range" id="hslSat" min="0" max="60" step="5" value="30"></div>
       <div class="control"><div class="control-head"><span class="name">Lightness bias</span><span class="val" id="hslLightVal">+0%</span></div><input type="range" id="hslLight" min="-30" max="30" step="5" value="0"></div>
       <button class="panel-reset" data-reset="hsl" type="button" title="Restore HSL defaults">Reset</button>
-      <div class="panel-note" id="hslGreyNote" role="status" hidden><span class="panel-note-ico" aria-hidden="true">⚠</span><span>Near-grayscale input — hue schemes need chroma to vary, so accents were lifted to ~14% saturation to make the scheme visible. For grey inputs, OKLCH-Scored or Material give cleaner results.</span></div>
     </div>
 
     <div class="method-panel" id="materialPanel" data-method-panel="material">
@@ -1288,7 +1278,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
       <button class="panel-reset" data-reset="hybrid" type="button" title="Restore Hybrid defaults">Reset</button>
     </div>
     <!-- Shared advisory for the ACTIVE method — accents collapsed onto the primary -->
-    <div class="dock-note" id="closeAccentsNote" role="status" hidden><span class="panel-note-ico" aria-hidden="true">⚠</span><span>This method's accents are very close to your primary color, so the palette has little variation for this input. Try another method, or adjust the controls above.</span></div>
+    <div class="dock-note" id="closeAccentsNote" role="status" hidden><span class="panel-note-ico" aria-hidden="true">⚠</span><span>Low separation — these colors are too similar to your primary to work as distinct accents. Try another method, or adjust the controls above.</span></div>
       </div><!-- /method-dock -->
     </section><!-- /method-block -->
 
@@ -4542,15 +4532,13 @@ function rerender(){
     renderSuggestions(palette.suggestions, palette.primary.hex, palette.userInputHex);
   }
   renderPalette(palette);
-  // Near-grayscale HSL notice — inline panel, shown only when the saturation
-  // floor actually kicked in for the HSL method (it has specific copy).
-  const greyActive = (CURRENT_METHOD === 'hsl' && palette.hslNearGrey);
-  const greyNote = document.getElementById('hslGreyNote');
-  if (greyNote) greyNote.hidden = !greyActive;
-  // Generic "accents too close to primary" advisory for the active method —
-  // any method, any input. Suppressed when the more-specific grey note shows.
+  // Single generic low-separation advisory for the active method — fires for
+  // any input/method when accents collapse onto the primary, including HSL's
+  // near-grayscale saturation-floor case (no method-specific copy anymore).
+  const lowSeparation = accentsTooClose(palette) ||
+    (CURRENT_METHOD === 'hsl' && palette.hslNearGrey);
   const closeNote = document.getElementById('closeAccentsNote');
-  if (closeNote) closeNote.hidden = !(accentsTooClose(palette) && !greyActive);
+  if (closeNote) closeNote.hidden = !lowSeparation;
   renderTabSwatches(palette);
   renderStatus(palette.statuses);
   // Paper neutrals — derived from current primary + PAPER_OPTS (sliders / preset cycle)
