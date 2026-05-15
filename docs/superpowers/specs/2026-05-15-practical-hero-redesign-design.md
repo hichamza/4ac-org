@@ -23,8 +23,10 @@ Those directions were explored and rejected by the user in favor of clarity.
 - **Headline:** outcome-stated, plain language. Working copy:
   - H1: `One hex in. A full, accessible palette out.`
   - Sub: `Primary + 3 accents + status colors + 100–900 ramps. Export-ready. No signup.`
-- **Acronym requirement:** `4ac = 4 Awesome Colorizers` must be visibly present in the
-  hero (expanding the wordmark). Replaces the current "4 Amazing Colorizers" wording.
+- **Acronym requirement:** `4 Awesome Colorizers` must be visibly present in the
+  hero eyebrow. Replaces the current "4 Amazing Colorizers" wording. (Revised
+  2026-05-15: the earlier `4ac = 4 Awesome Colorizers` form was dropped — the
+  repeated "4" and the `=` read awkwardly; just "4 Awesome Colorizers".)
 - **No generate button.** The tool is live/instant; the palette below updates as input
   changes. The mockup's "Generate →" button was illustrative only and must NOT be added.
 - **No new dependencies, no web fonts, single file.** Consistent with the project's
