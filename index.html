@@ -4260,10 +4260,28 @@ function renderColorWheel(palette){
   ).join('');
 
   const dots = items.map(it => {
-    const r = it.big ? 9 : 7;
+    const r = it.big ? 13 : 7;
     // Position the badge above or below the dot depending on its quadrant
     const above = it.y < cy;
     const labelOffsetY = above ? -r - 6 : r + 18;
+    // Primary — the anchor everything else is measured against. Make it
+    // unmistakable: largest dot, a bright double ring, and a solid
+    // high-contrast "PRIMARY" pill (vs. the small muted "P" before).
+    if (it.big){
+      const labelTxt = 'PRIMARY';
+      const labelW = labelTxt.length * 6 + 16;
+      const labelH = 14;
+      const lx = it.x - labelW / 2;
+      const ly = it.y + labelOffsetY - labelH + 2;
+      const title = `Primary · ${it.hex}`;
+      return `
+        <circle cx="${it.x}" cy="${it.y}" r="${r + 7}" fill="none" stroke="var(--fg)" stroke-width="1.5" stroke-opacity="0.45"/>
+        <circle cx="${it.x}" cy="${it.y}" r="${r + 3}" fill="var(--bg)"/>
+        <circle cx="${it.x}" cy="${it.y}" r="${r}" fill="${it.hex}" stroke="var(--fg)" stroke-width="3"><title>${title}</title></circle>
+        <rect x="${lx}" y="${ly}" width="${labelW}" height="${labelH}" rx="7" fill="var(--fg)"><title>${title}</title></rect>
+        <text x="${it.x}" y="${ly + labelH - 4}" text-anchor="middle" class="wcag-badge-svg" fill="var(--bg)" font-weight="700">${labelTxt}</text>
+      `;
+    }
     // For accents, draw a colored WCAG pill behind the level text
     if (it.wcag){
       const labelW = it.label.length * 6 + 12;
