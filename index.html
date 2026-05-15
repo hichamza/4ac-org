@@ -757,6 +757,10 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
     opacity:.4;transition:opacity .18s ease;
   }
   .method-tab.active .tab-name::before{opacity:1}
+  /* Per-method advisory flag — e.g. HSL's near-grayscale lift. Hidden until
+     that method's palette actually triggers the condition (.has-warn). */
+  .method-tab .tab-warn{display:none}
+  .method-tab.has-warn .tab-warn{display:inline-flex;align-items:center;color:#F59E0B;font-size:12px;line-height:1;flex:none}
   .method-tab .tab-desc{
     font-family:var(--sans);font-size:11.5px;letter-spacing:.01em;font-weight:400;
     opacity:.8;line-height:1.4;color:var(--muted);
@@ -830,7 +834,10 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
   .method-panel,
   .weights{position:relative}
   /* Near-grayscale notice — styled as a catchy amber WARNING, not muted info. */
-  .method-panel .panel-note{flex:1 1 100%;margin-top:4px;display:flex;gap:9px;align-items:flex-start;font-family:var(--mono);font-size:11px;line-height:1.55;letter-spacing:.02em;color:#FCD34D;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.45);border-left:3px solid #F59E0B;border-radius:8px;padding:9px 12px}
+  /* margin-right cancels most of the panel's 90px right padding (kept for the
+     absolutely-positioned Reset button, which only occupies the top row) so
+     this full-width note gets a symmetric ~18px gutter instead of stopping short. */
+  .method-panel .panel-note{flex:1 1 100%;margin-top:4px;margin-right:-72px;display:flex;gap:9px;align-items:flex-start;font-family:var(--mono);font-size:11px;line-height:1.55;letter-spacing:.02em;color:#FCD34D;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.45);border-left:3px solid #F59E0B;border-radius:8px;padding:9px 12px}
   .method-panel .panel-note-ico{color:#F59E0B;font-size:13px;line-height:1.4;flex:none}
   .method-panel .panel-note[hidden]{display:none}
 
@@ -939,6 +946,8 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
        on row 1, so normal padding is fine. */
     .method-panel.active{flex-direction:column;align-items:stretch;gap:20px;padding:18px 16px}
     .method-panel .control{min-width:0;width:100%;flex:none;gap:8px}
+    /* Mobile padding is symmetric (16px) — drop the desktop -72px note offset. */
+    .method-panel .panel-note{margin-right:0}
     .weights{flex-direction:column;align-items:stretch;gap:20px;padding:18px 16px}
     .weight{min-width:0;width:100%;flex:none;gap:8px}
     .method-panel .control-head,
@@ -1181,7 +1190,7 @@ function trackDebounced(event, params){ clearTimeout(_dbt[event]); _dbt[event] =
           <span class="tab-desc">Curated premium colors, ranked by fit.</span>
         </button>
         <button class="method-tab" data-method="hsl" role="tab" aria-selected="false">
-          <span class="tab-head"><span class="tab-name">HSL Math</span><span class="tab-swatches" aria-hidden="true"></span></span>
+          <span class="tab-head"><span class="tab-name">HSL Math<span class="tab-warn" aria-hidden="true" title="Near-grayscale input — accents were lifted to keep the scheme visible">⚠</span></span><span class="tab-swatches" aria-hidden="true"></span></span>
           <span class="tab-desc">Classic color theory schemes.</span>
         </button>
         <button class="method-tab" data-method="hybrid" role="tab" aria-selected="false">
@@ -4473,6 +4482,9 @@ function renderTabSwatches(currentPalette){
     try {
       p = (m === CURRENT_METHOD && currentPalette) ? currentPalette : paletteForMethod(m);
     } catch (e) { p = null; }
+    // HSL is the only method whose near-grayscale guard alters the result;
+    // flag its tab so the warning is visible even from another method's screen.
+    if (m === 'hsl') tab.classList.toggle('has-warn', !!(p && p.hslNearGrey));
     if (!p){ host.innerHTML = ''; return; }
     const cols = [
       p.primary && p.primary.hex,
